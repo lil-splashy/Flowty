@@ -10,9 +10,6 @@ public class ChoreItem extends ToDoListItem {
 
     private Integer estimatedMinutes;
 
-    @Column(name = "roll_number")
-    private Integer rollNumber;
-
     public String getCategory() {
         return category;
     }
@@ -27,13 +24,5 @@ public class ChoreItem extends ToDoListItem {
 
     public void setEstimatedMinutes(Integer estimatedMinutes) {
         this.estimatedMinutes = estimatedMinutes;
-    }
-
-    public Integer getRollNumber() {
-        return rollNumber;
-    }
-
-    public void setRollNumber(Integer rollNumber) {
-        this.rollNumber = rollNumber;
     }
 }

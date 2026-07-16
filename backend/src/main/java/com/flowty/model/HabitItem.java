@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 @DiscriminatorValue("HABIT")
 public class HabitItem extends ToDoListItem {
 
-    @Column
+    @Column(nullable = false)
     private String frequency;
 
     private Integer currentStreak = 0;
