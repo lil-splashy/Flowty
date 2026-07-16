@@ -1,8 +1,7 @@
 package com.flowty.repository;
 
-import com.flowty.model.Chore;
+import com.flowty.model.ChoreItem;
 import com.flowty.model.User;
-import com.flowty.model.enums.ChoreCategory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -15,19 +14,32 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ChoreRepositoryTest {
 
     @Autowired
-    private ChoreRepository choreRepository;
+    private ToDoListItemRepository toDoListItemRepository;
     @Autowired
     private UserRepository userRepository;
 
     @Test
-    void findByUserOrderByRollNumberAsc() {
+    void findChoreItemsByUserOrderByRollNumberAsc() {
         User user = userRepository.save(User.builder()
                 .username("test").email("t@t.com").password("pw").build());
 
-        choreRepository.save(Chore.builder().user(user).rollNumber(2).description("Second").category(ChoreCategory.CHORE).build());
-        choreRepository.save(Chore.builder().user(user).rollNumber(1).description("First").category(ChoreCategory.CHORE).build());
+        ChoreItem item1 = new ChoreItem();
+        item1.setUser(user);
+        item1.setTitle("Second");
+        item1.setDescription("Second");
+        item1.setRollNumber(2);
+        item1.setCategory("CHORE");
+        toDoListItemRepository.save(item1);
 
-        List<Chore> chores = choreRepository.findByUserOrderByRollNumberAsc(user);
+        ChoreItem item2 = new ChoreItem();
+        item2.setUser(user);
+        item2.setTitle("First");
+        item2.setDescription("First");
+        item2.setRollNumber(1);
+        item2.setCategory("CHORE");
+        toDoListItemRepository.save(item2);
+
+        List<ChoreItem> chores = toDoListItemRepository.findChoreItemsByUserOrderByRollNumberAsc(user);
 
         assertThat(chores).hasSize(2);
         assertThat(chores.get(0).getRollNumber()).isEqualTo(1);

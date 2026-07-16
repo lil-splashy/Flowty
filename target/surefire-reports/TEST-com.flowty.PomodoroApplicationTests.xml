@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.flowty.repository.ChoreRepositoryTest" time="3.265" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.flowty.PomodoroApplicationTests" time="1.981" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="22"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -47,6 +47,7 @@
     <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
     <property name="java.io.tmpdir" value="/var/folders/46/83mtcskd3j995bb90hbyw47c0000gn/T/"/>
     <property name="skip.frontend.build" value="true"/>
+    <property name="com.zaxxer.hikari.pool_number" value="1"/>
     <property name="java.version" value="22.0.1"/>
     <property name="user.dir" value="/Users/ben/coding/Project-Cozy"/>
     <property name="os.arch" value="aarch64"/>
@@ -63,9 +64,9 @@
     <property name="java.class.version" value="66.0"/>
     <property name="LOGGED_APPLICATION_NAME" value="[flowty] "/>
   </properties>
-  <testcase name="findChoreItemsByUserOrderByRollNumberAsc" classname="com.flowty.repository.ChoreRepositoryTest" time="0.447">
-    <system-out><![CDATA[15:37:54.857 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.flowty.repository.ChoreRepositoryTest]: ChoreRepositoryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-15:37:55.017 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.flowty.FlowtyApplication for test class com.flowty.repository.ChoreRepositoryTest
+  <testcase name="contextLoads" classname="com.flowty.PomodoroApplicationTests" time="0.005">
+    <system-out><![CDATA[2026-07-16T15:37:57.926-05:00  INFO 90329 --- [flowty] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.flowty.PomodoroApplicationTests]: PomodoroApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-07-16T15:37:57.931-05:00  INFO 90329 --- [flowty] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.flowty.FlowtyApplication for test class com.flowty.PomodoroApplicationTests
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -76,26 +77,26 @@
 
  :: Spring Boot ::                (v3.4.1)
 
-2026-07-16T15:37:55.346-05:00  INFO 90329 --- [flowty] [           main] c.flowty.repository.ChoreRepositoryTest  : Starting ChoreRepositoryTest using Java 22.0.1 with PID 90329 (started by ben in /Users/ben/coding/Project-Cozy)
-2026-07-16T15:37:55.347-05:00  INFO 90329 --- [flowty] [           main] c.flowty.repository.ChoreRepositoryTest  : The following 1 profile is active: "dev"
-2026-07-16T15:37:55.564-05:00  INFO 90329 --- [flowty] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-07-16T15:37:55.606-05:00  INFO 90329 --- [flowty] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 36 ms. Found 4 JPA repository interfaces.
-2026-07-16T15:37:55.639-05:00  INFO 90329 --- [flowty] [           main] beddedDataSourceBeanFactoryPostProcessor : Replacing 'dataSource' DataSource bean with embedded version
-2026-07-16T15:37:55.721-05:00  INFO 90329 --- [flowty] [           main] o.s.j.d.e.EmbeddedDatabaseFactory        : Starting embedded database: url='jdbc:h2:mem:633dc01f-d6b6-472e-9a46-f596852a10de;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'
-2026-07-16T15:37:55.889-05:00  INFO 90329 --- [flowty] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-07-16T15:37:55.928-05:00  INFO 90329 --- [flowty] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.4.Final
-2026-07-16T15:37:55.949-05:00  INFO 90329 --- [flowty] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-07-16T15:37:56.132-05:00  INFO 90329 --- [flowty] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-07-16T15:37:56.247-05:00  WARN 90329 --- [flowty] [           main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-07-16T15:37:56.265-05:00  INFO 90329 --- [flowty] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
-	Database JDBC URL [Connecting through datasource 'org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseFactory$EmbeddedDataSourceProxy@7cd3e0da']
+2026-07-16T15:37:57.962-05:00  INFO 90329 --- [flowty] [           main] com.flowty.PomodoroApplicationTests      : Starting PomodoroApplicationTests using Java 22.0.1 with PID 90329 (started by ben in /Users/ben/coding/Project-Cozy)
+2026-07-16T15:37:57.962-05:00  INFO 90329 --- [flowty] [           main] com.flowty.PomodoroApplicationTests      : The following 1 profile is active: "dev"
+2026-07-16T15:37:58.358-05:00  INFO 90329 --- [flowty] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-07-16T15:37:58.366-05:00  INFO 90329 --- [flowty] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 7 ms. Found 4 JPA repository interfaces.
+2026-07-16T15:37:58.605-05:00  INFO 90329 --- [flowty] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-07-16T15:37:58.606-05:00  INFO 90329 --- [flowty] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-07-16T15:37:58.611-05:00  INFO 90329 --- [flowty] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-07-16T15:37:58.612-05:00  INFO 90329 --- [flowty] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-07-16T15:37:58.619-05:00  INFO 90329 --- [flowty] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn5: url=jdbc:h2:mem:d20dashboard user=SA
+2026-07-16T15:37:58.620-05:00  INFO 90329 --- [flowty] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-07-16T15:37:58.623-05:00  WARN 90329 --- [flowty] [           main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-07-16T15:37:58.625-05:00  INFO 90329 --- [flowty] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
 	Database driver: undefined/unknown
 	Database version: 2.3.232
 	Autocommit mode: undefined/unknown
 	Isolation level: undefined/unknown
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2026-07-16T15:37:56.855-05:00  INFO 90329 --- [flowty] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-07-16T15:37:58.688-05:00  INFO 90329 --- [flowty] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
 Hibernate: 
     drop table if exists stamp_cards cascade 
 Hibernate: 
@@ -177,9 +178,22 @@ Hibernate:
        add constraint FKj5u5avewjbsn0hkcgv2vfwqau 
        foreign key (user_id) 
        references users
-2026-07-16T15:37:56.901-05:00  INFO 90329 --- [flowty] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-07-16T15:37:57.076-05:00  INFO 90329 --- [flowty] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
-2026-07-16T15:37:57.471-05:00  INFO 90329 --- [flowty] [           main] c.flowty.repository.ChoreRepositoryTest  : Started ChoreRepositoryTest in 2.413 seconds (process running for 3.225)
+2026-07-16T15:37:58.695-05:00  INFO 90329 --- [flowty] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-07-16T15:37:58.821-05:00  INFO 90329 --- [flowty] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+2026-07-16T15:37:58.965-05:00  WARN 90329 --- [flowty] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-07-16T15:37:59.082-05:00  INFO 90329 --- [flowty] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-07-16T15:37:59.292-05:00  INFO 90329 --- [flowty] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-07-16T15:37:59.649-05:00  INFO 90329 --- [flowty] [           main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:d20dashboard'
+2026-07-16T15:37:59.704-05:00  INFO 90329 --- [flowty] [           main] com.flowty.PomodoroApplicationTests      : Started PomodoroApplicationTests in 1.766 seconds (process running for 5.458)
+Hibernate: 
+    select
+        u1_0.id 
+    from
+        users u1_0 
+    where
+        u1_0.username=? 
+    fetch
+        first ? rows only
 Hibernate: 
     insert 
     into
@@ -202,28 +216,131 @@ Hibernate:
     values
         (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
 Hibernate: 
-    select
-        ci1_0.id,
-        ci1_0.completed,
-        ci1_0.description,
-        ci1_0.title,
-        ci1_0.user_id,
-        ci1_0.category,
-        ci1_0.estimated_minutes,
-        ci1_0.roll_number 
-    from
-        todo_list_items ci1_0 
-    where
-        ci1_0.user_id=? 
-        and ci1_0.item_type='CHORE' 
-    order by
-        ci1_0.roll_number
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
+Hibernate: 
+    insert 
+    into
+        todo_list_items
+        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
 ]]></system-out>
-    <system-err><![CDATA[Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build what is described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#0.3
-WARNING: A Java agent has been loaded dynamically (/Users/ben/.m2/repository/net/bytebuddy/byte-buddy-agent/1.15.11/byte-buddy-agent-1.15.11.jar)
-WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
-WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
-WARNING: Dynamic loading of agents will be disallowed by default in a future release
-]]></system-err>
   </testcase>
 </testsuite>

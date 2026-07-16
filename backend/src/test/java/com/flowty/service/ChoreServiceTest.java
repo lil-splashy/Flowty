@@ -1,10 +1,9 @@
 package com.flowty.service;
 
 import com.flowty.dto.ChoreRequest;
-import com.flowty.model.Chore;
+import com.flowty.model.ChoreItem;
 import com.flowty.model.User;
-import com.flowty.model.enums.ChoreCategory;
-import com.flowty.repository.ChoreRepository;
+import com.flowty.repository.ToDoListItemRepository;
 import com.flowty.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -23,19 +21,30 @@ import static org.mockito.Mockito.*;
 class ChoreServiceTest {
 
     @Mock
-    private ChoreRepository choreRepository;
+    private ToDoListItemRepository toDoListItemRepository;
     @Mock
     private UserRepository userRepository;
 
     @InjectMocks
     private ChoreService choreService;
 
+    private ChoreItem createChoreItem(User user, int rollNumber, String description, String category) {
+        ChoreItem item = new ChoreItem();
+        item.setId(1L);
+        item.setUser(user);
+        item.setTitle(description);
+        item.setDescription(description);
+        item.setRollNumber(rollNumber);
+        item.setCategory(category);
+        return item;
+    }
+
     @Test
     void getUserChoresReturnsChoresForUser() {
         User user = User.builder().username("test").email("t@t.com").password("x").build();
         when(userRepository.findByUsername("test")).thenReturn(Optional.of(user));
-        Chore chore = Chore.builder().user(user).rollNumber(1).description("Test chore").category(ChoreCategory.CHORE).build();
-        when(choreRepository.findByUserOrderByRollNumberAsc(user)).thenReturn(List.of(chore));
+        ChoreItem choreItem = createChoreItem(user, 1, "Test chore", "CHORE");
+        when(toDoListItemRepository.findChoreItemsByUserOrderByRollNumberAsc(user)).thenReturn(List.of(choreItem));
 
         var result = choreService.getUserChores("test");
 
@@ -46,13 +55,12 @@ class ChoreServiceTest {
     @Test
     void toggleCompleteFlipsCompletedFlag() {
         User user = User.builder().username("test").email("t@t.com").password("x").build();
-        UUID choreId = UUID.randomUUID();
-        Chore chore = Chore.builder().id(choreId).user(user).rollNumber(1).description("Test").category(ChoreCategory.CHORE).completed(false).build();
-        when(choreRepository.findById(choreId)).thenReturn(Optional.of(chore));
-        when(choreRepository.save(any())).thenReturn(chore);
+        ChoreItem choreItem = createChoreItem(user, 1, "Test", "CHORE");
+        when(toDoListItemRepository.findById(1L)).thenReturn(Optional.of(choreItem));
+        when(toDoListItemRepository.save(any())).thenReturn(choreItem);
 
-        var result = choreService.toggleComplete("test", choreId);
+        var result = choreService.toggleComplete("test", 1L);
 
-        assertThat(result.isCompleted()).isTrue();
+        assertThat(result.getCompleted()).isTrue();
     }
 }
