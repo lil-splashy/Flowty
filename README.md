@@ -12,7 +12,7 @@
 docker compose up --build
 ```
 
-This builds the app image (frontend + backend in a multi-stage Docker build) and starts both the application and a PostgreSQL database. The app will be available at [http://localhost:8080](http://localhost:8080).
+This builds the app image in a docker container and starts both the application and a MySQL database. The app will be available at [http://localhost:8080](http://localhost:8080).
 
 The first build will take a few minutes. Subsequent builds are faster due to Docker layer caching.
 
