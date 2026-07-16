@@ -1,7 +1,7 @@
 import client from './client';
 
 export interface ChoreResponse {
-  id: string;
+  id: number;
   rollNumber: number;
   description: string;
   category: string;
@@ -16,14 +16,14 @@ export function createChore(data: { description: string; rollNumber: number; cat
   return client.post('/chores', data).then((r) => r.data);
 }
 
-export function updateChore(id: string, data: { description: string; rollNumber: number; category: string }): Promise<ChoreResponse> {
+export function updateChore(id: number, data: { description: string; rollNumber: number; category: string }): Promise<ChoreResponse> {
   return client.put(`/chores/${id}`, data).then((r) => r.data);
 }
 
-export function toggleChoreComplete(id: string): Promise<ChoreResponse> {
+export function toggleChoreComplete(id: number): Promise<ChoreResponse> {
   return client.patch(`/chores/${id}/complete`).then((r) => r.data);
 }
 
-export function deleteChore(id: string): Promise<void> {
+export function deleteChore(id: number): Promise<void> {
   return client.delete(`/chores/${id}`);
 }

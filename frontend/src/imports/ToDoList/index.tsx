@@ -24,7 +24,7 @@ export default function ToDoList({ className }: { className?: string }) {
   }, [fetchChores]);
 
   const handleToggle = useCallback(
-    async (id: string) => {
+    async (id: number) => {
       try {
         const updated = await choresApi.toggleChoreComplete(id);
         setChores((prev) => prev.map((c) => (c.id === id ? updated : c)));

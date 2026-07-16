@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.flowty.repository.ChoreRepositoryTest" time="3.265" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.flowty.service.AuthServiceTest" time="0.102" tests="3" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="22"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -47,6 +47,7 @@
     <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
     <property name="java.io.tmpdir" value="/var/folders/46/83mtcskd3j995bb90hbyw47c0000gn/T/"/>
     <property name="skip.frontend.build" value="true"/>
+    <property name="com.zaxxer.hikari.pool_number" value="1"/>
     <property name="java.version" value="22.0.1"/>
     <property name="user.dir" value="/Users/ben/coding/Project-Cozy"/>
     <property name="os.arch" value="aarch64"/>
@@ -63,167 +64,7 @@
     <property name="java.class.version" value="66.0"/>
     <property name="LOGGED_APPLICATION_NAME" value="[flowty] "/>
   </properties>
-  <testcase name="findChoreItemsByUserOrderByRollNumberAsc" classname="com.flowty.repository.ChoreRepositoryTest" time="0.447">
-    <system-out><![CDATA[15:37:54.857 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.flowty.repository.ChoreRepositoryTest]: ChoreRepositoryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-15:37:55.017 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.flowty.FlowtyApplication for test class com.flowty.repository.ChoreRepositoryTest
-
-  .   ____          _            __ _ _
- /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
-( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
- \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
-  '  |____| .__|_| |_|_| |_\__, | / / / /
- =========|_|==============|___/=/_/_/_/
-
- :: Spring Boot ::                (v3.4.1)
-
-2026-07-16T15:37:55.346-05:00  INFO 90329 --- [flowty] [           main] c.flowty.repository.ChoreRepositoryTest  : Starting ChoreRepositoryTest using Java 22.0.1 with PID 90329 (started by ben in /Users/ben/coding/Project-Cozy)
-2026-07-16T15:37:55.347-05:00  INFO 90329 --- [flowty] [           main] c.flowty.repository.ChoreRepositoryTest  : The following 1 profile is active: "dev"
-2026-07-16T15:37:55.564-05:00  INFO 90329 --- [flowty] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-07-16T15:37:55.606-05:00  INFO 90329 --- [flowty] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 36 ms. Found 4 JPA repository interfaces.
-2026-07-16T15:37:55.639-05:00  INFO 90329 --- [flowty] [           main] beddedDataSourceBeanFactoryPostProcessor : Replacing 'dataSource' DataSource bean with embedded version
-2026-07-16T15:37:55.721-05:00  INFO 90329 --- [flowty] [           main] o.s.j.d.e.EmbeddedDatabaseFactory        : Starting embedded database: url='jdbc:h2:mem:633dc01f-d6b6-472e-9a46-f596852a10de;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'
-2026-07-16T15:37:55.889-05:00  INFO 90329 --- [flowty] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-07-16T15:37:55.928-05:00  INFO 90329 --- [flowty] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.4.Final
-2026-07-16T15:37:55.949-05:00  INFO 90329 --- [flowty] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-07-16T15:37:56.132-05:00  INFO 90329 --- [flowty] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-07-16T15:37:56.247-05:00  WARN 90329 --- [flowty] [           main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-07-16T15:37:56.265-05:00  INFO 90329 --- [flowty] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
-	Database JDBC URL [Connecting through datasource 'org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseFactory$EmbeddedDataSourceProxy@7cd3e0da']
-	Database driver: undefined/unknown
-	Database version: 2.3.232
-	Autocommit mode: undefined/unknown
-	Isolation level: undefined/unknown
-	Minimum pool size: undefined/unknown
-	Maximum pool size: undefined/unknown
-2026-07-16T15:37:56.855-05:00  INFO 90329 --- [flowty] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-Hibernate: 
-    drop table if exists stamp_cards cascade 
-Hibernate: 
-    drop table if exists stamp_slots cascade 
-Hibernate: 
-    drop table if exists timer_state cascade 
-Hibernate: 
-    drop table if exists todo_list_items cascade 
-Hibernate: 
-    drop table if exists users cascade 
-Hibernate: 
-    create table stamp_cards (
-        redeemed boolean not null,
-        total_stamps integer not null,
-        created_at timestamp(6) with time zone not null,
-        id uuid not null,
-        user_id uuid not null,
-        primary key (id)
-    )
-Hibernate: 
-    create table stamp_slots (
-        filled boolean not null,
-        slot_number integer not null,
-        filled_at timestamp(6) with time zone,
-        id bigint generated by default as identity,
-        stamp_card_id uuid not null,
-        primary key (id)
-    )
-Hibernate: 
-    create table timer_state (
-        break_duration integer not null,
-        break_remaining integer not null,
-        completed_sessions integer not null,
-        running boolean not null,
-        work_duration integer not null,
-        work_remaining integer not null,
-        id bigint not null,
-        last_tick timestamp(6) with time zone not null,
-        mode enum ('BREAK','WORK') not null,
-        primary key (id)
-    )
-Hibernate: 
-    create table todo_list_items (
-        completed boolean not null,
-        current_streak integer,
-        estimated_minutes integer,
-        longest_streak integer,
-        roll_number integer,
-        id bigint generated by default as identity,
-        user_id uuid not null,
-        item_type varchar(31) not null,
-        category varchar(255),
-        description varchar(255),
-        frequency varchar(255),
-        title varchar(255) not null,
-        primary key (id)
-    )
-Hibernate: 
-    create table users (
-        created_at timestamp(6) with time zone not null,
-        id uuid not null,
-        username varchar(50) not null unique,
-        email varchar(100) not null unique,
-        password varchar(255) not null,
-        primary key (id)
-    )
-Hibernate: 
-    alter table if exists stamp_cards 
-       add constraint FKptwcghfvxt7a64a24nim8260q 
-       foreign key (user_id) 
-       references users
-Hibernate: 
-    alter table if exists stamp_slots 
-       add constraint FKbbkgpch2m5m8w03x25s988mbd 
-       foreign key (stamp_card_id) 
-       references stamp_cards
-Hibernate: 
-    alter table if exists todo_list_items 
-       add constraint FKj5u5avewjbsn0hkcgv2vfwqau 
-       foreign key (user_id) 
-       references users
-2026-07-16T15:37:56.901-05:00  INFO 90329 --- [flowty] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-07-16T15:37:57.076-05:00  INFO 90329 --- [flowty] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
-2026-07-16T15:37:57.471-05:00  INFO 90329 --- [flowty] [           main] c.flowty.repository.ChoreRepositoryTest  : Started ChoreRepositoryTest in 2.413 seconds (process running for 3.225)
-Hibernate: 
-    insert 
-    into
-        users
-        (created_at, email, password, username, id) 
-    values
-        (?, ?, ?, ?, ?)
-Hibernate: 
-    insert 
-    into
-        todo_list_items
-        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
-    values
-        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
-Hibernate: 
-    insert 
-    into
-        todo_list_items
-        (completed, description, title, user_id, category, estimated_minutes, roll_number, item_type, id) 
-    values
-        (?, ?, ?, ?, ?, ?, ?, 'CHORE', default)
-Hibernate: 
-    select
-        ci1_0.id,
-        ci1_0.completed,
-        ci1_0.description,
-        ci1_0.title,
-        ci1_0.user_id,
-        ci1_0.category,
-        ci1_0.estimated_minutes,
-        ci1_0.roll_number 
-    from
-        todo_list_items ci1_0 
-    where
-        ci1_0.user_id=? 
-        and ci1_0.item_type='CHORE' 
-    order by
-        ci1_0.roll_number
-]]></system-out>
-    <system-err><![CDATA[Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build what is described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#0.3
-WARNING: A Java agent has been loaded dynamically (/Users/ben/.m2/repository/net/bytebuddy/byte-buddy-agent/1.15.11/byte-buddy-agent-1.15.11.jar)
-WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
-WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
-WARNING: Dynamic loading of agents will be disallowed by default in a future release
-]]></system-err>
-  </testcase>
+  <testcase name="signupRejectsDuplicateUsername" classname="com.flowty.service.AuthServiceTest" time="0.061"/>
+  <testcase name="signupCreatesUserAndReturnsToken" classname="com.flowty.service.AuthServiceTest" time="0.007"/>
+  <testcase name="loginReturnsTokenOnSuccess" classname="com.flowty.service.AuthServiceTest" time="0.032"/>
 </testsuite>
