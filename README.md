@@ -1,4 +1,4 @@
-# Project-Cozy
+# Flowty - Productivity Workspace
 
 ## Running with Docker
 
