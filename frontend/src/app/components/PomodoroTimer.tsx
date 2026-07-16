@@ -451,18 +451,6 @@ export function PomodoroTimer() {
         </div>
 
         {!isRunning && !isBreak && workRemaining === workTotal && (
-          <p
-            style={{
-              color: "rgba(255,255,255,0.2)",
-              fontSize: 12,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              marginTop: 12,
-              marginBottom: 0,
-            }}
-          >
-            tap time to set · play to start
-          </p>
         )}
       </div>
     </>
