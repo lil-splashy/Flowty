@@ -26,7 +26,6 @@ Set these environment variables before running to override defaults:
 | `SPRING_DATASOURCE_URL` | `jdbc:postgresql://db:5432/flowty` | JDBC URL |
 | `SPRING_DATASOURCE_USERNAME` | `flowtyuser` | DB username |
 | `SPRING_DATASOURCE_PASSWORD` | `flowtypass` | DB password |
-| `APP_JWT_SECRET` | *(change me)* | JWT signing secret |
 
 The JWT secret should be changed to a strong random value before deploying.
 
