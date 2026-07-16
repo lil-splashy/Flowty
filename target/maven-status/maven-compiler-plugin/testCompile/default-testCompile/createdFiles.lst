@@ -1,0 +1,5 @@
+com/flowty/controller/AuthControllerTest.class
+com/flowty/service/ChoreServiceTest.class
+com/flowty/service/AuthServiceTest.class
+com/flowty/repository/ChoreRepositoryTest.class
+com/flowty/PomodoroApplicationTests.class
