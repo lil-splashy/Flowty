@@ -1,33 +1,36 @@
 services:
-  db:
-    image: postgres:16
-    environment:
-      POSTGRES_DB: cozydb
-      POSTGRES_USER: cozy
-      POSTGRES_PASSWORD: cozypass
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
-  backend:
-    build: ./backend
+  app:
+    build: .
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/cozydb
-      SPRING_DATASOURCE_USERNAME: cozy
-      SPRING_DATASOURCE_PASSWORD: cozypass
-      JWT_SECRET: change-this-to-a-secure-256-bit-secret-in-production-please
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/flowty
+      - SPRING_DATASOURCE_USERNAME=flowtyuser
+      - SPRING_DATASOURCE_PASSWORD=flowtypass
+      - APP_JWT_SECRET=change-this-to-a-strong-random-secret-at-least-256-bits
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
 
-  frontend:
-    build: ./frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=flowty
+      - POSTGRES_USER=flowtyuser
+      - POSTGRES_PASSWORD=flowtypass
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowtyuser -d flowty"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
   pgdata:

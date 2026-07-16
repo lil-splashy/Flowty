@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: flowty
+  profiles:
+    active: dev
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+app:
+  jwt:
+    secret: flowty-jwt-secret-key-that-is-at-least-256-bits-long-for-hs256
+    expiration-ms: 86400000
+
+server:
+  port: 8080
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
