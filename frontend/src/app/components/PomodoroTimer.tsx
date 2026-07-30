@@ -449,9 +449,6 @@ export function PomodoroTimer() {
             </div>
           )}
         </div>
-
-        {!isRunning && !isBreak && workRemaining === workTotal && (
-        )}
       </div>
     </>
   );

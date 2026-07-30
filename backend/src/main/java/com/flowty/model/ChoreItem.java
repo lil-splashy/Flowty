@@ -6,9 +6,19 @@ import jakarta.persistence.*;
 @DiscriminatorValue("CHORE")
 public class ChoreItem extends ToDoListItem {
 
+    private Integer rollNumber;
+
     private String category;
 
     private Integer estimatedMinutes;
+
+    public Integer getRollNumber() {
+        return rollNumber;
+    }
+
+    public void setRollNumber(Integer rollNumber) {
+        this.rollNumber = rollNumber;
+    }
 
     public String getCategory() {
         return category;

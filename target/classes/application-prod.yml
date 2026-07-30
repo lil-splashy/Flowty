@@ -1,12 +1,12 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/d20dashboard}
-    username: ${SPRING_DATASOURCE_USERNAME:d20user}
-    password: ${SPRING_DATASOURCE_PASSWORD:d20pass}
-    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/flowty}
+    username: ${SPRING_DATASOURCE_USERNAME:flowtyuser}
+    password: ${SPRING_DATASOURCE_PASSWORD:flowtypass}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.MySQLDialect
