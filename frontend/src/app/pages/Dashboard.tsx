@@ -6,6 +6,7 @@ import PomodoroTimer from "@/app/components/PomodoroTimer";
 import StampCard from "@/imports/StampCard/index";
 import StampCard1 from "@/imports/StampCard-1/index";
 import ToDoList from "@/imports/ToDoList/index";
+import HabitList from "@/imports/HabitList/index";
 import { useAuth } from "@/app/context/AuthContext";
 import { useNavigate } from "react-router";
 
@@ -77,6 +78,10 @@ export default function Dashboard() {
 
         <DragItem initialX={87} initialY={283} zIndex={11}>
           <ToDoList />
+        </DragItem>
+
+        <DragItem initialX={340} initialY={283} zIndex={16}>
+          <HabitList />
         </DragItem>
 
         <DragItem initialX={732} initialY={42} zIndex={12}>
