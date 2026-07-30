@@ -13,6 +13,9 @@ public class HabitItem extends ToDoListItem {
 
     private Integer longestStreak = 0;
 
+    @Column(name = "active")
+    private Boolean active = true;
+
     public String getFrequency() {
         return frequency;
     }
@@ -35,5 +38,13 @@ public class HabitItem extends ToDoListItem {
 
     public void setLongestStreak(Integer longestStreak) {
         this.longestStreak = longestStreak;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }
