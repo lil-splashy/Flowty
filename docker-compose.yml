@@ -4,8 +4,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/flowty
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/flowty
       - SPRING_DATASOURCE_USERNAME=flowtyuser
       - SPRING_DATASOURCE_PASSWORD=flowtypass
       - APP_JWT_SECRET=change-this-to-a-strong-random-secret-at-least-256-bits
@@ -13,25 +12,24 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 3s
       retries: 3
 
   db:
-    image: mysql:8.0
+    image: postgres:16-alpine
     environment:
-      - MYSQL_DATABASE=flowty
-      - MYSQL_USER=flowtyuser
-      - MYSQL_PASSWORD=flowtypass
-      - MYSQL_ROOT_PASSWORD=rootpass
+      - POSTGRES_DB=flowty
+      - POSTGRES_USER=flowtyuser
+      - POSTGRES_PASSWORD=flowtypass
     volumes:
-      - mysqldata:/var/lib/mysql
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U flowtyuser -d flowty"]
       interval: 5s
       timeout: 3s
       retries: 5
 
 volumes:
-  mysqldata:
+  pgdata:
