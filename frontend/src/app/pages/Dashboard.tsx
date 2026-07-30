@@ -8,6 +8,7 @@ import StampCard1 from "@/imports/StampCard-1/index";
 import ToDoList from "@/imports/ToDoList/index";
 import { useAuth } from "@/app/context/AuthContext";
 import { useNavigate } from "react-router";
+import WhiteNoisePlayer from "@/app/components/whitenoise/WhiteNoisePlayer";
 
 function DragItem({
   children,
@@ -98,7 +99,12 @@ export default function Dashboard() {
         <DragItem initialX={1257} initialY={453} zIndex={15}>
           <D20 />
         </DragItem>
-      </div>
+
+        <DragItem initialX={1030} initialY={380} zIndex={16}>
+          <WhiteNoisePlayer />
+          </DragItem>
+
+     </div>
     </div>
   );
 }
