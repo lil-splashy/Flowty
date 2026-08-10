@@ -113,6 +113,15 @@ class WorkspaceSettings {
     + saveLayout(layout)
 }
 
+class WidgetPlacement {
+    - widgetId : String
+    - x : Double
+    - y : Double
+    - zIndex : Integer
+    + updatePosition(x, y)
+    + updateZIndex(zIndex)
+}
+
 class TimerConfig {
     - id : Long
     - workMinutes : Integer
@@ -158,6 +167,7 @@ class D20Picker {
 User "1" -- "0..*" ToDoListItem : owns
 User "1" -- "0..*" HabitCompletion : records
 User "1" -- "1" WorkspaceSettings : configures
+User "1" -- "0..*" WidgetPlacement : saves placements
 User "1" -- "0..1" TimerConfig : personal
 User "1" -- "0..*" PomodoroSession : history
 User "1" -- "0..*" RewardTransaction : earns
@@ -218,6 +228,13 @@ end note
 note bottom of WorkspaceSettings
   Workspace Customization
   Theme, layout, sounds.
+end note
+
+note bottom of WidgetPlacement
+  Dashboard widget layout
+  Position and z-index for each
+  draggable widget persisted on
+  the user profile.
 end note
 
 note bottom of D20Picker

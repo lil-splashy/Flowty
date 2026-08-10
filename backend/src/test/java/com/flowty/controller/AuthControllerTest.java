@@ -4,6 +4,7 @@ import com.flowty.dto.AuthResponse;
 import com.flowty.security.JwtAuthenticationFilter;
 import com.flowty.security.JwtTokenProvider;
 import com.flowty.service.AuthService;
+import com.flowty.service.UserProfileService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
+
+    @MockitoBean
+    private UserProfileService userProfileService;
 
     @Autowired
     private ObjectMapper objectMapper;
