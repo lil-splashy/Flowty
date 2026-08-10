@@ -20,6 +20,7 @@
     <properties>
         <java.version>21</java.version>
         <jjwt.version>0.12.6</jjwt.version>
+        <lombok.version>1.18.38</lombok.version>
         <skip.frontend.build>false</skip.frontend.build>
     </properties>
 
