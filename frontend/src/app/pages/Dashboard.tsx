@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import blueprintBg from "@/imports/blueprint-background.png";
 import ChoreTable from "@/imports/ChoreTable/index";
@@ -11,18 +12,35 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useNavigate } from "react-router";
 import WhiteNoisePlayer from "@/app/components/whitenoise/WhiteNoisePlayer";
 import { useRef, useState, useCallback } from "react";
+import * as authApi from "@/app/api/auth";
+
+const WIDGET_DEFAULTS: Record<string, { x: number; y: number; zIndex: number }> = {
+  pomodoro: { x: 23, y: -58, zIndex: 10 },
+  todo: { x: 87, y: 283, zIndex: 11 },
+  habits: { x: 340, y: 283, zIndex: 16 },
+  stampCard: { x: 732, y: 42, zIndex: 12 },
+  stampCard1: { x: 718, y: 67, zIndex: 13 },
+  chores: { x: 1098, y: 90, zIndex: 14 },
+  d20: { x: 1257, y: 453, zIndex: 15 },
+  whiteNoise: { x: 1030, y: 380, zIndex: 16 },
+};
+
+type Placement = {
+  widgetId: string;
+  x: number;
+  y: number;
+  zIndex: number;
+};
 
 function DragItem({
   children,
-  initialX,
-  initialY,
-  zIndex = 10,
+  placement,
+  onDragEnd,
   className,
 }: {
   children: React.ReactNode;
-  initialX: number;
-  initialY: number;
-  zIndex?: number;
+  placement: Placement;
+  onDragEnd: (placement: Placement) => void;
   className?: string;
 }) {
   const [dragEnabled, setDragEnabled] = useState(false);
@@ -47,11 +65,18 @@ function DragItem({
       drag={dragEnabled}
       dragMomentum={false}
       dragElastic={0}
-      initial={{ x: initialX, y: initialY }}
-      onPointerEnter={handlePointerEnter}
-      onPointerLeave={handlePointerLeave}
-      style={{ position: "absolute", top: 0, left: 0, zIndex, cursor: dragEnabled ? "grab" : "default" }}
+      animate={{ x: placement.x, y: placement.y }}
+      initial={{ x: placement.x, y: placement.y }}
+      style={{ position: "absolute", top: 0, left: 0, zIndex: placement.zIndex, cursor: "grab" }}
       whileDrag={{ cursor: "grabbing", zIndex: 100 }}
+      onDragEnd={(_event, info) => {
+        onDragEnd({
+          widgetId: placement.widgetId,
+          x: placement.x + info.offset.x,
+          y: placement.y + info.offset.y,
+          zIndex: placement.zIndex,
+        });
+      }}
       className={className}
     >
       {children}
@@ -106,6 +131,60 @@ export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const [placements, setPlacements] = useState<Record<string, Placement>>(() =>
+    Object.entries(WIDGET_DEFAULTS).reduce((acc, [widgetId, defaults]) => {
+      acc[widgetId] = { widgetId, ...defaults };
+      return acc;
+    }, {} as Record<string, Placement>)
+  );
+
+  const saveTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    authApi
+      .getWidgetPlacements()
+      .then((saved) => {
+        if (cancelled) return;
+
+        setPlacements((current) => {
+          const next = { ...current };
+          saved.forEach((p) => {
+            next[p.widgetId] = p;
+          });
+          return next;
+        });
+      })
+      .catch(() => {
+        // Leave defaults in place if the profile cannot be loaded.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function persistPlacements(nextPlacements: Record<string, Placement>) {
+    if (saveTimeoutRef.current) {
+      window.clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = window.setTimeout(() => {
+      authApi.updateWidgetPlacements(Object.values(nextPlacements)).catch(() => {
+        // Silently fail; user can retry on next drag.
+      });
+    }, 500);
+  }
+
+  function handleDragEnd(updated: Placement) {
+    setPlacements((current) => {
+      const next = { ...current, [updated.widgetId]: updated };
+      persistPlacements(next);
+      return next;
+    });
+  }
+
   function handleLogout() {
     logout();
     navigate("/login");
@@ -129,26 +208,26 @@ export default function Dashboard() {
         </div>
         <button
           onClick={handleLogout}
-          className="Log out"
+          className="rounded px-3 py-1 bg-[#1a1a2e] text-[#e7e1af] text-sm font-['Special_Elite'] hover:bg-[#2a2a4e] transition-colors border border-[#1a1a2e]"
         >
           Logout
         </button>
       </div>
 
       <div className="relative mx-auto" style={{ width: 1366, height: 638 }}>
-        <DragItem initialX={23} initialY={-58} zIndex={10}>
+        <DragItem placement={placements.pomodoro} onDragEnd={handleDragEnd}>
           <PomodoroTimer />
         </DragItem>
 
-        <DragItem initialX={87} initialY={283} zIndex={11}>
+        <DragItem placement={placements.todo} onDragEnd={handleDragEnd}>
           <ToDoList />
         </DragItem>
 
-        <DragItem initialX={340} initialY={283} zIndex={16}>
+        <DragItem placement={placements.habits} onDragEnd={handleDragEnd}>
           <HabitList />
         </DragItem>
 
-        <DragItem initialX={732} initialY={42} zIndex={12}>
+        <DragItem placement={placements.stampCard} onDragEnd={handleDragEnd}>
           <div className="flex h-[276.482px] w-[343.487px] items-center justify-center">
             <div className="flex-none rotate-[13.44deg] h-full w-full">
               <StampCard />
@@ -156,23 +235,22 @@ export default function Dashboard() {
           </div>
         </DragItem>
 
-        <DragItem initialX={718} initialY={67} zIndex={13}>
+        <DragItem placement={placements.stampCard1} onDragEnd={handleDragEnd}>
           <StampCard1 />
         </DragItem>
 
-        <DragItem initialX={1098} initialY={90} zIndex={14}>
+        <DragItem placement={placements.chores} onDragEnd={handleDragEnd}>
           <ChoreTable />
         </DragItem>
 
-        <DragItem initialX={1257} initialY={453} zIndex={15}>
-          <D20Widget />
+        <DragItem placement={placements.d20} onDragEnd={handleDragEnd}>
+          <D20 />
         </DragItem>
 
-        <DragItem initialX={1030} initialY={380} zIndex={16}>
+        <DragItem placement={placements.whiteNoise} onDragEnd={handleDragEnd}>
           <WhiteNoisePlayer />
-          </DragItem>
-
-     </div>
+        </DragItem>
+      </div>
     </div>
   );
 }

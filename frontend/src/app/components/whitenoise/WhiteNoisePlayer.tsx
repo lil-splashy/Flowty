@@ -99,12 +99,10 @@ function loadSavedSettings(): SavedPlayerSettings {
 }
 
 export default function WhiteNoisePlayer() {
-  const savedSettings = loadSavedSettings();
-
   const [selectedSoundId, setSelectedSoundId] =
-    useState<SoundId>(savedSettings.selectedSoundId);
+    useState<SoundId>(() => loadSavedSettings().selectedSoundId);
 
-  const [volume, setVolume] = useState(savedSettings.volume);
+  const [volume, setVolume] = useState(() => loadSavedSettings().volume);
   const [isPlaying, setIsPlaying] = useState(false);
   const [message, setMessage] = useState("");
 
