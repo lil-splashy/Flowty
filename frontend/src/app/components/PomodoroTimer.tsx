@@ -65,6 +65,11 @@ export function PomodoroTimer() {
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const modeRef = useRef(mode);
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   const isBreak = mode === "break";
   const remaining = isBreak ? breakRemaining : workRemaining;
@@ -80,12 +85,12 @@ export function PomodoroTimer() {
       return;
     }
     intervalRef.current = setInterval(() => {
-      if (mode === "work") {
+      const currentMode = modeRef.current;
+      if (currentMode === "work") {
         setWorkRemaining((prev) => {
           if (prev <= 1) {
-            setCompletedSessions((s) => (s + 1) % 5);
+            setCompletedSessions((s) => (s + 1) % 4);
             setMode("break");
-            setBreakRemaining((br) => br);
             return 0;
           }
           return prev - 1;
@@ -95,6 +100,7 @@ export function PomodoroTimer() {
           if (prev <= 1) {
             setMode("work");
             setWorkRemaining(workTotal);
+            setBreakRemaining(breakTotal);
             setIsRunning(false);
             return 0;
           }
@@ -106,7 +112,7 @@ export function PomodoroTimer() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isRunning, mode]);
+  }, [isRunning, workTotal, breakTotal]);
 
   useEffect(() => {
     if (!isRunning && mode === "work") setWorkRemaining(workTotal);
