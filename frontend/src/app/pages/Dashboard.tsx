@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import blueprintBg from "@/imports/blueprint-background.png";
 import ChoreTable from "@/imports/ChoreTable/index";
-import D20 from "@/imports/D20/index";
+import D20, { type D20Ref } from "@/imports/D20/index";
 import PomodoroTimer from "@/app/components/PomodoroTimer";
 import StampCard from "@/imports/StampCard/index";
 import StampCard1 from "@/imports/StampCard-1/index";
@@ -11,6 +11,7 @@ import HabitList from "@/imports/HabitList/index";
 import { useAuth } from "@/app/context/AuthContext";
 import { useNavigate } from "react-router";
 import WhiteNoisePlayer from "@/app/components/whitenoise/WhiteNoisePlayer";
+import { useRef, useState, useCallback } from "react";
 import * as authApi from "@/app/api/auth";
 
 const WIDGET_DEFAULTS: Record<string, { x: number; y: number; zIndex: number }> = {
@@ -42,9 +43,26 @@ function DragItem({
   onDragEnd: (placement: Placement) => void;
   className?: string;
 }) {
+  const [dragEnabled, setDragEnabled] = useState(false);
+  const hoverTimerRef = useRef<number | null>(null);
+
+  const handlePointerEnter = useCallback(() => {
+    hoverTimerRef.current = window.setTimeout(() => {
+      setDragEnabled(true);
+    }, 500);
+  }, []);
+
+  const handlePointerLeave = useCallback(() => {
+    if (hoverTimerRef.current !== null) {
+      window.clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    setDragEnabled(false);
+  }, []);
+
   return (
     <motion.div
-      drag
+      drag={dragEnabled}
       dragMomentum={false}
       dragElastic={0}
       animate={{ x: placement.x, y: placement.y }}
@@ -63,6 +81,49 @@ function DragItem({
     >
       {children}
     </motion.div>
+  );
+}
+
+function D20Widget() {
+  const d20Ref = useRef<D20Ref>(null);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    pointerStartRef.current = { x: e.clientX, y: e.clientY };
+  }, []);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    const start = pointerStartRef.current;
+    pointerStartRef.current = null;
+    if (!start) return;
+
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Only roll on a genuine click/tap, not a drag.
+    if (distance < 5) {
+      d20Ref.current?.roll();
+    }
+  }, []);
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label="Roll a D20"
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          d20Ref.current?.roll();
+        }
+      }}
+      className="cursor-pointer focus:outline-none select-none touch-manipulation"
+    >
+      <D20 ref={d20Ref} />
+    </div>
   );
 }
 
