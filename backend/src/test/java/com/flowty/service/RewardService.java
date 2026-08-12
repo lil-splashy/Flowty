@@ -28,7 +28,8 @@ public class RewardService {
 
         rewardTransactionRepository.save(transaction);
 
-        user.setRewardBalance(user.getRewardBalance() + amount);
+        int current = user.getRewardBalance() == null ? 0: user.getRewardBalance();
+    user.setRewardBalance(current + amount);
         userRepository.save(user);
 
         return transaction;
