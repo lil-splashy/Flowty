@@ -68,16 +68,16 @@ public class StampCardService {
         }
 
         int nextSlotNumber = card.getTotalStamps() + 1;
-        StampSlot slot = StampSlot.builder()
-                .stampCard(card)
-                .slotNumber(nextSlotNumber)
-                .filled(true)
-                .filledAt(Instant.now())
-                .build();
+        StampSlot slot = card.getSlots().stream()
+                .filter(s -> s.getSlotNumber() == nextSlotNumber)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Slot " + nextSlotNumber + " not found"));
 
-        card.getSlots().add(slot);
+        slot.setFilled(true);
+        slot.setFilledAt(Instant.now());
+
         card.setTotalStamps(card.getTotalStamps() + 1);
-
+        
         stampCardRepository.save(card);
         return toResponse(card);
     }
