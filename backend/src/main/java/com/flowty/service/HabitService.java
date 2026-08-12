@@ -2,6 +2,8 @@ package com.flowty.service;
 
 import com.flowty.dto.HabitRequest;
 import com.flowty.dto.HabitResponse;
+import com.flowty.dto.StampCardResponse;
+import com.flowty.model.RewardTransaction;
 import com.flowty.model.HabitItem;
 import com.flowty.model.User;
 import com.flowty.repository.ToDoListItemRepository;
@@ -23,6 +25,8 @@ public class HabitService {
 
     private final ToDoListItemRepository toDoListItemRepository;
     private final UserRepository userRepository;
+    private final RewardService rewardService;
+    private final StampCardService stampCardService;
 
     public List<HabitResponse> getUserHabits(String username) {
         User user = findUser(username);
@@ -78,11 +82,20 @@ public class HabitService {
         return toResponse(habit);
     }
 
-    @Transactional
+   @Transactional
     public HabitResponse toggleComplete(String username, Long id) {
         HabitItem habit = findHabit(id, username);
-        habit.setCompleted(!habit.getCompleted());
+        boolean wasCompleted = habit.getCompleted();
+        habit.setCompleted(!wasCompleted);
         toDoListItemRepository.save(habit);
+
+        if (!wasCompleted) {
+            rewardService.awardPoints(habit.getUser(), 10,
+                    RewardTransaction.RewardReason.HABIT_COMPLETION, habit.getId());
+            StampCardResponse activeCard = stampCardService.getOrCreateActiveCard(username);
+            stampCardService.addStamp(username, activeCard.getId());
+        }
+
         return toResponse(habit);
     }
 

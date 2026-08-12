@@ -39,4 +39,8 @@ public class User {
     @JdbcTypeCode(SqlTypes.JSON)
     @Builder.Default
     private List<WidgetPlacement> widgetPlacements = new ArrayList<>();
+    
+    @Column(name = "reward_balance", nullable = false)
+    @Builder.Default
+    private Integer rewardBalance = 0;
 }
