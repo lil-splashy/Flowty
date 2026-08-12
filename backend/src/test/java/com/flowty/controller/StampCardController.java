@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/stamp-cards")
+@RequestMapping("/api/stampcards")
 public class StampCardController {
 
     private final StampCardService stampCardService;
