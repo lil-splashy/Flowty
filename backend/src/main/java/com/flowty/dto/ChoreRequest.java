@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChoreRequest {
-    private int rollNumber;
     private String description;
+    private Integer rollNumber;
     private String category;
 }

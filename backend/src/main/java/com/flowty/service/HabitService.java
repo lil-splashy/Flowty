@@ -2,8 +2,6 @@ package com.flowty.service;
 
 import com.flowty.dto.HabitRequest;
 import com.flowty.dto.HabitResponse;
-import com.flowty.dto.StampCardResponse;
-import com.flowty.model.RewardTransaction;
 import com.flowty.model.HabitItem;
 import com.flowty.model.User;
 import com.flowty.repository.ToDoListItemRepository;
@@ -12,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -57,6 +56,8 @@ public class HabitService {
         habit.setFrequency(frequency);
         habit.setActive(true);
         habit.setCompleted(false);
+        habit.setCurrentStreak(0);
+        habit.setLongestStreak(0);
 
         toDoListItemRepository.save(habit);
         return toResponse(habit);
@@ -82,21 +83,52 @@ public class HabitService {
         return toResponse(habit);
     }
 
-   @Transactional
+    @Transactional
     public HabitResponse toggleComplete(String username, Long id) {
         HabitItem habit = findHabit(id, username);
-        boolean wasCompleted = habit.getCompleted();
-        habit.setCompleted(!wasCompleted);
-        toDoListItemRepository.save(habit);
 
-        if (!wasCompleted) {
-            rewardService.awardPoints(habit.getUser(), 10,
-                    RewardTransaction.RewardReason.HABIT_COMPLETION, habit.getId());
-            StampCardResponse activeCard = stampCardService.getOrCreateActiveCard(username);
-            stampCardService.addStamp(username, activeCard.getId());
+        if (Boolean.TRUE.equals(habit.getCompleted())) {
+            habit.setCompleted(false);
+            toDoListItemRepository.save(habit);
+            return toResponse(habit);
         }
 
+        habit.setCompleted(true);
+        updateStreak(habit);
+        toDoListItemRepository.save(habit);
+
+        stampCardService.addStampForHabitCompletion(username, habit.getId());
+
         return toResponse(habit);
+    }
+
+    private void updateStreak(HabitItem habit) {
+        LocalDate today = LocalDate.now();
+        LocalDate lastCompleted = habit.getLastCompletedDate();
+
+        if (lastCompleted == null) {
+            habit.setCurrentStreak(1);
+        } else if ("DAILY".equalsIgnoreCase(habit.getFrequency())) {
+            if (lastCompleted.equals(today.minusDays(1))) {
+                habit.setCurrentStreak(habit.getCurrentStreak() + 1);
+            } else if (!lastCompleted.equals(today)) {
+                habit.setCurrentStreak(1);
+            }
+        } else if ("WEEKLY".equalsIgnoreCase(habit.getFrequency())) {
+            if (!lastCompleted.isBefore(today.minusDays(7)) && !lastCompleted.equals(today)) {
+                habit.setCurrentStreak(habit.getCurrentStreak() + 1);
+            } else if (!lastCompleted.equals(today)) {
+                habit.setCurrentStreak(1);
+            }
+        } else {
+            habit.setCurrentStreak(habit.getCurrentStreak() + 1);
+        }
+
+        if (habit.getCurrentStreak() > habit.getLongestStreak()) {
+            habit.setLongestStreak(habit.getCurrentStreak());
+        }
+
+        habit.setLastCompletedDate(today);
     }
 
     /**
@@ -109,8 +141,6 @@ public class HabitService {
         habit.setActive(false);
         toDoListItemRepository.save(habit);
     }
-
-    // --- helpers ---
 
     private User findUser(String username) {
         return userRepository.findByUsername(username)
@@ -174,6 +204,8 @@ public class HabitService {
                 .description(habit.getDescription())
                 .frequency(habit.getFrequency())
                 .completed(habit.getCompleted())
+                .currentStreak(habit.getCurrentStreak())
+                .longestStreak(habit.getLongestStreak())
                 .build();
     }
 }

@@ -6,6 +6,8 @@ export interface HabitResponse {
   description: string;
   frequency: string;
   completed: boolean;
+  currentStreak: number;
+  longestStreak: number;
 }
 
 export interface HabitRequest {

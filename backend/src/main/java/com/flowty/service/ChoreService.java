@@ -11,13 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class ChoreService {
-
-    private static final Set<String> VALID_CATEGORIES = Set.of("CHORE", "STUDY", "LEGENDARY");
 
     private final ToDoListItemRepository toDoListItemRepository;
     private final UserRepository userRepository;
@@ -37,17 +34,12 @@ public class ChoreService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String category = request.getCategory().toUpperCase();
-        if (!VALID_CATEGORIES.contains(category)) {
-            throw new RuntimeException("Invalid category. Must be CHORE, STUDY, or LEGENDARY");
-        }
-
         ChoreItem choreItem = new ChoreItem();
         choreItem.setUser(user);
         choreItem.setTitle(request.getDescription());
         choreItem.setDescription(request.getDescription());
         choreItem.setRollNumber(request.getRollNumber());
-        choreItem.setCategory(category);
+        choreItem.setCategory(request.getCategory());
 
         toDoListItemRepository.save(choreItem);
         return toResponse(choreItem);
@@ -61,15 +53,10 @@ public class ChoreService {
             throw new RuntimeException("Not authorized");
         }
 
-        String category = request.getCategory().toUpperCase();
-        if (!VALID_CATEGORIES.contains(category)) {
-            throw new RuntimeException("Invalid category");
-        }
-
         choreItem.setTitle(request.getDescription());
         choreItem.setDescription(request.getDescription());
         choreItem.setRollNumber(request.getRollNumber());
-        choreItem.setCategory(category);
+        choreItem.setCategory(request.getCategory());
 
         toDoListItemRepository.save(choreItem);
         return toResponse(choreItem);

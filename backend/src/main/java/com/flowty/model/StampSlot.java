@@ -30,4 +30,8 @@ public class StampSlot {
 
     @Column(name = "filled_at")
     private Instant filledAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "habit_item_id")
+    private HabitItem habitItem;
 }

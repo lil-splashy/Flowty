@@ -40,11 +40,7 @@ public class AuthService {
 
         String token = jwtTokenProvider.generateToken(user.getUsername());
 
-        return AuthResponse.builder()
-                .token(token)
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .build();
+        return toResponse(user, token);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -57,20 +53,22 @@ public class AuthService {
         User user = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return AuthResponse.builder()
-                .token(token)
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .build();
+        return toResponse(user, token);
     }
 
     public AuthResponse getCurrentUser(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        return toResponse(user, null);
+    }
+
+    private AuthResponse toResponse(User user, String token) {
         return AuthResponse.builder()
+                .token(token)
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .totalPoints(user.getTotalPoints())
                 .build();
     }
 }

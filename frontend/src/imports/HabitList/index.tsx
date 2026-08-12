@@ -212,6 +212,14 @@ export default function HabitList({ className }: { className?: string }) {
                         {habit.frequency ? habit.frequency.charAt(0) : ""}
                       </p>
                     </span>
+                    {habit.currentStreak > 0 && (
+                      <span className="shrink-0 flex items-center gap-[2px]">
+                        <span className="leading-[10px] text-[8px]">🔥</span>
+                        <p className="font-['Courier_Prime',sans-serif] leading-[12px] not-italic text-[#d4780a] text-[8px] text-right whitespace-nowrap font-bold">
+                          {habit.currentStreak}
+                        </p>
+                      </span>
+                    )}
                     <button
                       onClick={() => handleDelete(habit.id)}
                       className="shrink-0 font-['Courier_Prime',sans-serif] text-[#8a6a40] text-[9px] opacity-0 group-hover:opacity-100 transition-opacity hover:text-[#a33]"

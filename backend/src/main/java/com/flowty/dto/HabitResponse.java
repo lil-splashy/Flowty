@@ -11,4 +11,6 @@ public class HabitResponse {
     private String description;
     private String frequency;
     private Boolean completed;
+    private Integer currentStreak;
+    private Integer longestStreak;
 }
