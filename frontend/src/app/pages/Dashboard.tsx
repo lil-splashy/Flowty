@@ -5,7 +5,6 @@ import ChoreTable from "@/imports/ChoreTable/index";
 import D20, { type D20Ref } from "@/imports/D20/index";
 import PomodoroTimer from "@/app/components/PomodoroTimer";
 import StampCard from "@/imports/StampCard/index";
-import StampCard1 from "@/imports/StampCard-1/index";
 import ToDoList from "@/imports/ToDoList/index";
 import HabitList from "@/imports/HabitList/index";
 import { useAuth } from "@/app/context/AuthContext";
@@ -233,10 +232,6 @@ export default function Dashboard() {
               <StampCard />
             </div>
           </div>
-        </DragItem>
-
-        <DragItem placement={placements.stampCard1} onDragEnd={handleDragEnd}>
-          <StampCard1 />
         </DragItem>
 
         <DragItem placement={placements.chores} onDragEnd={handleDragEnd}>
