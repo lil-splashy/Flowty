@@ -126,7 +126,12 @@ public class StampCardService {
         }
 
         StampSlot slot = fillNextSlot(card, habitItem, user);
-        stampCardRepository.save(card);
+        card = stampCardRepository.save(card);
+        final int targetSlotNumber = card.getTotalStamps();
+        StampSlot managedSlot = card.getSlots().stream()
+                .filter(s -> s.getSlotNumber() == targetSlotNumber)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Slot not found after save"));
 
         RewardTransaction tx = RewardTransaction.builder()
                 .user(user)
@@ -135,7 +140,7 @@ public class StampCardService {
                 .type(RewardTransaction.TransactionType.STAMP_EARNED)
                 .points(POINTS_PER_STAMP)
                 .stampCard(card)
-                .stampSlot(slot)
+                .stampSlot(managedSlot)
                 .build();
         rewardTransactionRepository.save(tx);
 
@@ -170,7 +175,12 @@ public class StampCardService {
         }
 
         StampSlot slot = fillNextSlot(card, null, user);
-        stampCardRepository.save(card);
+        card = stampCardRepository.save(card);
+        final int targetSlotNumber = card.getTotalStamps();
+        StampSlot managedSlot = card.getSlots().stream()
+                .filter(s -> s.getSlotNumber() == targetSlotNumber)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Slot not found after save"));
 
         RewardTransaction tx = RewardTransaction.builder()
                 .user(user)
@@ -178,7 +188,7 @@ public class StampCardService {
                 .type(RewardTransaction.TransactionType.STAMP_EARNED)
                 .points(POINTS_PER_STAMP)
                 .stampCard(card)
-                .stampSlot(slot)
+                .stampSlot(managedSlot)
                 .build();
         rewardTransactionRepository.save(tx);
 
