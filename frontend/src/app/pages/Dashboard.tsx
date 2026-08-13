@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "motion/react";
 import blueprintBg from "@/imports/blueprint-background.png";
 import flowtyLogo from "@/imports/FlowtyLogo.png";
@@ -12,7 +12,7 @@ import HabitList from "@/imports/HabitList/index";
 import { useAuth } from "@/app/context/AuthContext";
 import { useNavigate } from "react-router";
 import WhiteNoisePlayer from "@/app/components/whitenoise/WhiteNoisePlayer";
-import { useRef, useState, useCallback } from "react";
+import CustomizationStore from "@/app/components/customization/CustomizationStore";
 import * as authApi from "@/app/api/auth";
 import Journal from "@/app/components/journal/Journal";
 import ProfileSettings from "@/app/components/profile/ProfileSettings";
@@ -76,7 +76,13 @@ function DragItem({
       dragElastic={0}
       animate={{ x: placement.x, y: placement.y }}
       initial={{ x: placement.x, y: placement.y }}
-      style={{ position: "absolute", top: 0, left: 0, zIndex: placement.zIndex, cursor: "grab" }}
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        zIndex: placement.zIndex,
+        cursor: "grab",
+      }}
       whileDrag={{ cursor: "grabbing", zIndex: 100 }}
       onDragEnd={(_event, info) => {
         onDragEnd({
@@ -110,7 +116,7 @@ function D20Widget() {
     const dy = e.clientY - start.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Only roll on a genuine click/tap, not a drag.
+    
     if (distance < 5) {
       d20Ref.current?.roll();
     }
@@ -139,7 +145,7 @@ function D20Widget() {
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [isStoreOpen, setIsStoreOpen] = useState(false);
 
   const [placements, setPlacements] = useState<Record<string, Placement>>(() =>
     Object.entries(WIDGET_DEFAULTS).reduce((acc, [widgetId, defaults]) => {
@@ -167,7 +173,7 @@ export default function Dashboard() {
         });
       })
       .catch(() => {
-        // Leave defaults in place if the profile cannot be loaded.
+        
       });
 
     return () => {
@@ -182,7 +188,7 @@ export default function Dashboard() {
 
     saveTimeoutRef.current = window.setTimeout(() => {
       authApi.updateWidgetPlacements(Object.values(nextPlacements)).catch(() => {
-        // Silently fail; user can retry on next drag.
+        
       });
     }, 500);
   }
@@ -210,8 +216,26 @@ export default function Dashboard() {
         backgroundPosition: "center",
       }}
     >
-<div className="absolute top-3 left-4 z-50">
-        <img src={flowtyLogo} alt="Flowty" className="h-14 w-auto" />
+      <div className="absolute top-3 right-4 z-50 flex items-center gap-4">
+        <div className="bg-[#e7e1af] rounded px-3 py-1 border border-[#1a1a2e]">
+          <span className="text-[#1a1a2e] text-sm font-['Courier_Prime']">
+            {user?.username}
+          </span>
+        </div>
+
+        <button
+          onClick={() => setIsStoreOpen(true)}
+          className="rounded px-3 py-1 bg-[#e7e1af] text-[#1a1a2e] text-sm font-['Courier_Prime'] border border-[#1a1a2e]"
+        >
+          Store
+        </button>
+
+        <button
+          onClick={handleLogout}
+          className="rounded px-3 py-1 bg-[#1a1a2e] text-[#e7e1af] text-sm font-['Special_Elite'] hover:bg-[#2a2a4e] transition-colors border border-[#1a1a2e]"
+        >
+          Logout
+        </button>
       </div>
       <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
         <div className="absolute top-3 right-4 z-50 flex items-center gap-4">
@@ -233,6 +257,46 @@ export default function Dashboard() {
           <ProfileSettings />
         </DialogContent>
       </Dialog>
+
+      {isStoreOpen && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center"
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.55)",
+          }}
+          onClick={() => setIsStoreOpen(false)}
+        >
+          <div
+            style={{
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setIsStoreOpen(false)}
+              style={{
+                position: "absolute",
+                top: 8,
+                right: 10,
+                zIndex: 10,
+                width: 30,
+                height: 30,
+                borderRadius: "50%",
+                border: "1px solid #1a1a2e",
+                background: "#e7e1af",
+                color: "#1a1a2e",
+                cursor: "pointer",
+                fontWeight: "bold",
+              }}
+              aria-label="Close customization store"
+            >
+              ×
+            </button>
+
+            <CustomizationStore />
+          </div>
+        </div>
+      )}
 
       <div className="relative mx-auto" style={{ width: 1366, height: 638 }}>
         <DragItem placement={placements.pomodoro} onDragEnd={handleDragEnd}>
