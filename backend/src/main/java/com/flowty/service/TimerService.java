@@ -1,8 +1,12 @@
 package com.flowty.service;
 
+import com.flowty.model.RewardTransaction;
 import com.flowty.model.TimerMode;
 import com.flowty.model.TimerState;
+import com.flowty.model.User;
+import com.flowty.repository.RewardTransactionRepository;
 import com.flowty.repository.TimerStateRepository;
+import com.flowty.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +17,11 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class TimerService {
 
+    private static final int SECONDS_PER_POINT = 600; // 1 point per 10 minutes
+
     private final TimerStateRepository timerStateRepository;
+    private final UserRepository userRepository;
+    private final RewardTransactionRepository rewardTransactionRepository;
 
     public TimerState getState() {
         return timerStateRepository.findById(1L)
@@ -67,6 +75,29 @@ public class TimerService {
         state.setMode(TimerMode.WORK);
         state.setLastTick(Instant.now());
         timerStateRepository.save(state);
+    }
+
+    /**
+     * Awards points to the authenticated user for completing a work session.
+     * 1 point per 10 minutes of work time (rounded down).
+     */
+    @Transactional
+    public int awardSessionPoints(String username) {
+        TimerState state = getState();
+        int points = Math.max(1, state.getWorkDuration() / SECONDS_PER_POINT);
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        RewardTransaction tx = RewardTransaction.builder()
+                .user(user)
+                .type(RewardTransaction.TransactionType.POMODORO_SESSION)
+                .points(points)
+                .build();
+        rewardTransactionRepository.save(tx);
+        userRepository.addPoints(user.getUsername(), points);
+
+        return points;
     }
 
     private void tick(TimerState state) {

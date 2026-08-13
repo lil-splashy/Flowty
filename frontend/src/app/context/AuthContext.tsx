@@ -14,6 +14,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<void>;
   signup: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -65,8 +66,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const resp = await authApi.getMe();
+      localStorage.setItem('user', JSON.stringify({ username: resp.username, email: resp.email, totalPoints: resp.totalPoints }));
+      setUser({ username: resp.username, email: resp.email, totalPoints: resp.totalPoints });
+    } catch {
+      // If refresh fails, keep current user state
+    }
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login: loginFn, signup: signupFn, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login: loginFn, signup: signupFn, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

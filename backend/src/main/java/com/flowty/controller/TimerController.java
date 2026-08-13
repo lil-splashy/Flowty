@@ -3,6 +3,8 @@ package com.flowty.controller;
 import com.flowty.dto.TimerStateDto;
 import com.flowty.service.TimerService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -50,5 +52,12 @@ public class TimerController {
     public ResponseEntity<Map<String, String>> edit(@RequestParam("seconds") int seconds) {
         timerService.editDuration(seconds);
         return ResponseEntity.ok(Map.of("status", "ok"));
+    }
+
+    @PostMapping("/session-complete")
+    public ResponseEntity<Map<String, Object>> sessionComplete(
+            @AuthenticationPrincipal UserDetails principal) {
+        int points = timerService.awardSessionPoints(principal.getUsername());
+        return ResponseEntity.ok(Map.of("pointsEarned", points, "status", "ok"));
     }
 }

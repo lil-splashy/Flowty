@@ -50,6 +50,7 @@ public class RewardTransaction {
     public enum TransactionType {
         STAMP_EARNED,
         CARD_REDEEMED,
+        POMODORO_SESSION,
         PURCHASE
     }
 }

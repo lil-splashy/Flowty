@@ -28,6 +28,9 @@ export default function ToDoList({ className }: { className?: string }) {
       try {
         const updated = await choresApi.toggleChoreComplete(id);
         setChores((prev) => prev.map((c) => (c.id === id ? updated : c)));
+        if (updated.completed) {
+          window.dispatchEvent(new CustomEvent("flowty:stamp-earned"));
+        }
       } catch (err) {
         console.error("Failed to toggle chore:", err);
       }

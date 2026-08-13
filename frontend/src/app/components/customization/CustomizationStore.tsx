@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "@/app/context/ThemeContext";
+import { useAuth } from "@/app/context/AuthContext";
+import * as rewardsApi from "@/app/api/rewards";
 import { THEMES, type ThemeId } from "@/app/theme/themes";
 
 type Category = "background" | "widget" | "pomodoro";
@@ -13,7 +15,6 @@ type StoreItem = {
 };
 
 type StoreState = {
-  balance: number;
   ownedItems: string[];
   selectedBackground: string;
   selectedWidget: string;
@@ -23,7 +24,6 @@ type StoreState = {
 const STORAGE_KEY = "flowty-customization-store";
 
 const DEFAULT_STATE: StoreState = {
-  balance: 500,
   ownedItems: [
     "background-blueprint",
     "widget-default",
@@ -130,10 +130,21 @@ function loadStoreState(): StoreState {
 
 export default function CustomizationStore() {
   const { theme, applyTheme } = useTheme();
+  const { user, refreshUser } = useAuth();
   const [storeState, setStoreState] =
     useState<StoreState>(loadStoreState);
 
   const [message, setMessage] = useState("");
+  const [spending, setSpending] = useState(false);
+
+  const balance = user?.totalPoints ?? 0;
+
+  // Listen for point balance updates from other components
+  useEffect(() => {
+    const handler = () => refreshUser();
+    window.addEventListener("flowty:points-earned", handler);
+    return () => window.removeEventListener("flowty:points-earned", handler);
+  }, [refreshUser]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(storeState));
@@ -183,21 +194,31 @@ export default function CustomizationStore() {
     return storeState.selectedPomodoro === item.id;
   }
 
-  function purchaseItem(item: StoreItem) {
+  async function purchaseItem(item: StoreItem) {
     if (isOwned(item.id)) return;
+    if (spending) return;
 
-    if (storeState.balance < item.price) {
+    if (balance < item.price) {
       setMessage("Not enough rewards to purchase this item.");
       return;
     }
 
-    setStoreState((current) => ({
-      ...current,
-      balance: current.balance - item.price,
-      ownedItems: [...current.ownedItems, item.id],
-    }));
+    setSpending(true);
+    try {
+      await rewardsApi.spendPoints(item.price, item.name);
+      await refreshUser();
 
-    setMessage(`${item.name} purchased successfully.`);
+      setStoreState((current) => ({
+        ...current,
+        ownedItems: [...current.ownedItems, item.id],
+      }));
+
+      setMessage(`${item.name} purchased successfully.`);
+    } catch {
+      setMessage("Purchase failed. Please try again.");
+    } finally {
+      setSpending(false);
+    }
   }
 
   function selectItem(item: StoreItem) {
@@ -503,7 +524,7 @@ export default function CustomizationStore() {
             color: "var(--flowty-ink)",
           }}
         >
-          🪙 {storeState.balance}
+          🪙 {balance}
         </div>
       </div>
 

@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import * as timerApi from "@/app/api/timer";
+import { useAuth } from "@/app/context/AuthContext";
 
 const VECTOR_PATHS = {
   body: "M3.98046 495.103C-20.0195 362.104 68.9805 213.104 150.98 175.104C152.647 160.437 157.18 128.104 161.98 116.104C166.202 112.91 170.371 109.931 174.48 107.153C173.28 104.353 171.98 94.6035 171.98 91.6035C183.147 80.6035 216.18 58.3035 258.98 57.1035C261.78 60.7035 264.814 68.4775 265.98 71.9145C277.993 71.0692 287.242 72.2628 292.98 74.1035C303.647 81.7702 326.18 98.9035 330.98 106.103C462.98 84.1035 592.981 175.104 642.981 232.104C772.981 401.104 678.981 576.104 655.981 612.104C553.981 754.104 392.98 784.104 312.98 776.104C90.9804 752.104 34.9805 602.104 3.98046 495.103Z",
@@ -51,7 +53,24 @@ const CIRC = 2 * Math.PI * R;
 
 const BUBBLE_FONT = "'Bubblegum Sans', cursive";
 
+const STORAGE_KEY = "flowty-customization-store";
+
+function getSelectedPomodoroVariant(): string {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return "classic";
+    const parsed = JSON.parse(saved) as { selectedPomodoro?: string };
+    const id = parsed.selectedPomodoro ?? "pomodoro-default";
+    if (id === "pomodoro-retro") return "retro";
+    if (id === "pomodoro-focus") return "focus";
+    return "classic";
+  } catch {
+    return "classic";
+  }
+}
+
 export function PomodoroTimer() {
+  const { refreshUser } = useAuth();
   const [workTotal, setWorkTotal] = useState(60 * 60);
   const [workRemaining, setWorkRemaining] = useState(60 * 60);
   const [breakTotal, setBreakTotal] = useState(5 * 60);
@@ -62,6 +81,7 @@ export function PomodoroTimer() {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState("");
   const [completedSessions, setCompletedSessions] = useState(0);
+  const [pomodoroVariant, setPomodoroVariant] = useState(getSelectedPomodoroVariant);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -93,6 +113,11 @@ export function PomodoroTimer() {
           if (prev <= 1) {
             setCompletedSessions((s) => (s + 1) % 4);
             setMode("break");
+            // Award points for completed work session (1 pt per 10 min)
+            timerApi.completeSession().then(() => {
+              refreshUser();
+              window.dispatchEvent(new CustomEvent("flowty:points-earned"));
+            }).catch(() => {});
             return 0;
           }
           return prev - 1;
@@ -123,6 +148,17 @@ export function PomodoroTimer() {
   useEffect(() => {
     if (!isRunning && mode === "break") setBreakRemaining(breakTotal);
   }, [breakTotal]);
+
+  // React to pomodoro variant changes from the customization store
+  useEffect(() => {
+    const handleChange = () => setPomodoroVariant(getSelectedPomodoroVariant());
+    window.addEventListener("flowty:theme-change", handleChange);
+    window.addEventListener("storage", handleChange);
+    return () => {
+      window.removeEventListener("flowty:theme-change", handleChange);
+      window.removeEventListener("storage", handleChange);
+    };
+  }, []);
 
   const handlePlayPause = useCallback(() => {
     setIsRunning((v) => !v);
@@ -189,17 +225,17 @@ export function PomodoroTimer() {
   return (
     <>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&display=swap');${PULSE_KEYFRAMES}`}</style>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", userSelect: "none" }}>
+      <div data-pomodoro-variant={pomodoroVariant} style={{ display: "flex", flexDirection: "column", alignItems: "center", userSelect: "none" }}>
         <div style={{ position: "relative", width: WATCH_W, height: WATCH_H }}>
 
           <div style={{ position: "absolute", inset: 0 }}>
             <svg fill="none" preserveAspectRatio="none" viewBox="0 0 714.259 780.604" style={{ display: "block", width: "100%", height: "100%" }}>
               <g>
-                <path d={VECTOR_PATHS.body} fill="#C0BBBB" />
-                <path d={VECTOR_PATHS.strapL} fill="#7B7B7B" />
-                <path d={VECTOR_PATHS.strapR} fill="#989898" />
-                <path d={VECTOR_PATHS.bottom} fill="#686868" fillOpacity="0.6" />
-                <path d={VECTOR_PATHS.crown} fill="#8F8E8E" />
+                <path d={VECTOR_PATHS.body} fill="var(--pomo-body-fill)" />
+                <path d={VECTOR_PATHS.strapL} fill="var(--pomo-strap-left)" />
+                <path d={VECTOR_PATHS.strapR} fill="var(--pomo-strap-right)" />
+                <path d={VECTOR_PATHS.bottom} fill="var(--pomo-bottom-fill)" style={{ opacity: "var(--pomo-bottom-opacity)" }} />
+                <path d={VECTOR_PATHS.crown} fill="var(--pomo-crown-fill)" />
               </g>
             </svg>
           </div>
@@ -227,12 +263,12 @@ export function PomodoroTimer() {
           >
             <circle
               cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={R}
-              fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={STROKE_W}
+              fill="none" stroke="var(--pomo-ring-bg)" strokeWidth={STROKE_W}
             />
             <circle
               cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={R}
               fill="none"
-              stroke={isBreak ? "rgba(101,201,139,0.85)" : "rgba(255,255,255,0.82)"}
+              stroke={isBreak ? "var(--pomo-ring-break)" : "var(--pomo-ring-work)"}
               strokeWidth={STROKE_W}
               strokeDasharray={CIRC}
               strokeDashoffset={dashOffset}
@@ -262,7 +298,7 @@ export function PomodoroTimer() {
               <span
                 style={{
                   fontFamily: BUBBLE_FONT,
-                  color: "rgba(101,201,139,0.85)",
+                  color: "var(--pomo-break-label)",
                   fontSize: 12,
                   letterSpacing: "0.25em",
                   textTransform: "uppercase",
@@ -298,8 +334,8 @@ export function PomodoroTimer() {
                   background: "transparent",
                   outline: "none",
                   border: "none",
-                  borderBottom: "2px solid rgba(255,255,255,0.5)",
-                  color: "#fff",
+                  borderBottom: "2px solid var(--pomo-edit-border)",
+                  color: "var(--pomo-text-color)",
                 }}
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
@@ -318,15 +354,15 @@ export function PomodoroTimer() {
                   fontFamily: BUBBLE_FONT,
                   fontSize: 54,
                   cursor: isRunning ? "default" : "text",
-                  color: "#fff",
+                  color: "var(--pomo-text-color)",
                   lineHeight: 1,
                   background: "none",
                   border: "none",
                   padding: 0,
                   letterSpacing: "0.02em",
                   textShadow: isBreak
-                    ? "0 0 32px rgba(101,201,139,0.6), 0 2px 8px rgba(0,0,0,0.5)"
-                    : "0 0 32px rgba(255,160,160,0.6), 0 2px 8px rgba(0,0,0,0.5)",
+                    ? "var(--pomo-text-shadow-break)"
+                    : "var(--pomo-text-shadow-work)",
                 }}
               >
                 {formatTime(remaining)}
@@ -360,13 +396,13 @@ export function PomodoroTimer() {
                   aria-label={`Session ${i + 1}${filled ? " complete" : ""}`}
                 >
                   <svg viewBox="0 0 18 18" fill="none" style={{ position: "absolute", inset: 0 }}>
-                    <circle cx="9" cy="9" r="8" stroke="rgba(255,255,255,0.45)" strokeWidth="1.5" />
+                    <circle cx="9" cy="9" r="8" stroke="var(--pomo-bubble-stroke)" strokeWidth="1.5" />
                   </svg>
                   {(filled || (isNext && partial > 0)) && (
                     <svg viewBox="0 0 18 18" fill="none" style={{ position: "absolute", inset: 0 }}>
                       <circle
                         cx="9" cy="9" r="7"
-                        fill={filled ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.3)"}
+                        fill={filled ? "var(--pomo-bubble-fill)" : "color-mix(in srgb, var(--pomo-bubble-fill) 35%, transparent)"}
                         style={{
                           clipPath: filled ? undefined : `inset(${(1 - partial) * 100}% 0 0 0)`,
                           transition: "clip-path 1s linear",
@@ -403,7 +439,7 @@ export function PomodoroTimer() {
               onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.1)"; }}
             >
               <svg fill="none" preserveAspectRatio="none" viewBox="0 0 108 108" style={{ display: "block", width: "100%", height: "100%" }}>
-                <path d={RESET_PATH} fill="#fff" fillOpacity="0.94" />
+                <path d={RESET_PATH} fill="var(--pomo-btn-fill)" style={{ opacity: "var(--pomo-btn-opacity)" }} />
               </svg>
             </button>
             <button
@@ -418,12 +454,12 @@ export function PomodoroTimer() {
             >
               {isRunning ? (
                 <svg viewBox="0 0 104 104" fill="none" style={{ display: "block", width: "100%", height: "100%" }}>
-                  <rect x="18" y="16" width="24" height="72" rx="5" fill="white" fillOpacity="0.95" />
-                  <rect x="62" y="16" width="24" height="72" rx="5" fill="white" fillOpacity="0.95" />
+                  <rect x="18" y="16" width="24" height="72" rx="5" fill="var(--pomo-btn-fill)" style={{ opacity: "var(--pomo-btn-opacity)" }} />
+                  <rect x="62" y="16" width="24" height="72" rx="5" fill="var(--pomo-btn-fill)" style={{ opacity: "var(--pomo-btn-opacity)" }} />
                 </svg>
               ) : (
                 <svg fill="none" preserveAspectRatio="none" viewBox="0 0 104.305 104.305" style={{ display: "block", width: "100%", height: "100%" }}>
-                  <path d={PLAY_PATH} fill="#fff" fillOpacity="0.97" />
+                  <path d={PLAY_PATH} fill="var(--pomo-btn-fill)" style={{ opacity: "var(--pomo-btn-opacity)" }} />
                 </svg>
               )}
             </button>
@@ -445,7 +481,7 @@ export function PomodoroTimer() {
               <span
                 style={{
                   fontFamily: BUBBLE_FONT,
-                  color: "rgba(101,201,139,0.85)",
+                  color: "var(--pomo-break-label)",
                   fontSize: 12,
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",

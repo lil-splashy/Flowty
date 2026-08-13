@@ -2,15 +2,13 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "motion/react";
 import * as stampCardsApi from "@/app/api/stampCards";
 import type { StampCardResponse } from "@/app/api/stampCards";
-import type { RewardTransactionResponse } from "@/app/api/stampCards";
 import { useAuth } from "@/app/context/AuthContext";
 import { playPopSound } from "@/app/utils/sounds";
 import svgPaths from "@/imports/StampCard/svg-3vvmtd8stq";
 
 export default function Stampbook({ className }: { className?: string }) {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [card, setCard] = useState<StampCardResponse | null>(null);
-  const [transactions, setTransactions] = useState<RewardTransactionResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [redeeming, setRedeeming] = useState(false);
@@ -55,29 +53,18 @@ export default function Stampbook({ className }: { className?: string }) {
     }
   }, []);
 
-  const fetchTransactions = useCallback(async () => {
-    try {
-      const data = await stampCardsApi.getRewardTransactions();
-      setTransactions(data.slice(0, 10));
-    } catch {
-      setTransactions([]);
-    }
-  }, []);
-
   useEffect(() => {
     fetchCard();
-    fetchTransactions();
-  }, [fetchCard, fetchTransactions]);
+  }, [fetchCard]);
 
   // Live-update when a habit completion earns a stamp elsewhere on the page
   useEffect(() => {
     const onStampEarned = () => {
       fetchCard();
-      fetchTransactions();
     };
     window.addEventListener("flowty:stamp-earned", onStampEarned);
     return () => window.removeEventListener("flowty:stamp-earned", onStampEarned);
-  }, [fetchCard, fetchTransactions]);
+  }, [fetchCard]);
 
   useEffect(() => () => {
     if (popTimeoutRef.current) clearTimeout(popTimeoutRef.current);
@@ -90,7 +77,8 @@ export default function Stampbook({ className }: { className?: string }) {
     try {
       await stampCardsApi.redeemCard(card.id);
       await fetchCard();
-      await fetchTransactions();
+      await refreshUser();
+      window.dispatchEvent(new CustomEvent("flowty:points-earned"));
     } catch (err: any) {
       setError(
         err?.response?.data?.message ??
@@ -100,7 +88,7 @@ export default function Stampbook({ className }: { className?: string }) {
     } finally {
       setRedeeming(false);
     }
-  }, [card, fetchCard, fetchTransactions]);
+  }, [card, fetchCard]);
 
   const defaultClasses =
     "bg-[var(--flowty-paper)] border-[var(--flowty-ink)] border-[1.786px] border-solid overflow-clip relative rounded-[2.382px] shadow-[10px_-1px_2px_0px_var(--flowty-shadow-stamp),2.977px_2.977px_0px_0px_var(--flowty-ink)] h-[320px] w-[343.487px]";
@@ -273,35 +261,6 @@ export default function Stampbook({ className }: { className?: string }) {
           <p className="font-['Courier_Prime',sans-serif] text-[8px] text-[var(--flowty-error)] leading-[10px] mt-[4px]">
             {error}
           </p>
-        )}
-
-        {transactions.length > 0 && (
-          <div className="relative shrink-0 w-full mt-[4px]" data-name="Transactions">
-            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
-              <p className="[word-break:break-word] font-['Share_Tech_Mono:Regular',sans-serif] leading-[10px] not-italic relative shrink-0 text-[var(--flowty-stamp-label)] text-[7px] mb-[3px]">
-                RECENT REWARDS
-              </p>
-              <div className="flex flex-col gap-[1px] w-full max-h-[40px] overflow-y-auto">
-                {transactions.slice(0, 4).map((tx) => (
-                  <div key={tx.id} className="flex items-center gap-[4px]">
-                    <span className="shrink-0 leading-[8px] text-[7px]">
-                      {tx.type === "CARD_REDEEMED" ? "🎁" : "⭐"}
-                    </span>
-                    <p className="[word-break:break-word] font-['Courier_Prime',sans-serif] leading-[9px] not-italic flex-1 min-w-0 relative shrink-0 text-[var(--flowty-text)] text-[7px] truncate">
-                      {tx.type === "CARD_REDEEMED"
-                        ? `Card redeemed`
-                        : tx.habitName
-                          ? tx.habitName
-                          : "Task completed"}
-                    </p>
-                    <p className="[word-break:break-word] font-['Share_Tech_Mono:Regular',sans-serif] leading-[9px] not-italic relative shrink-0 text-[var(--flowty-progress-from)] text-[7px] whitespace-nowrap">
-                      +{tx.points} pts
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
         )}
       </div>
     </div>
