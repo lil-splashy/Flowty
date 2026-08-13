@@ -144,6 +144,49 @@ public class StampCardService {
     }
 
     @Transactional
+    public void addStampForChoreCompletion(String username, Long choreId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String choreName = "Unknown";
+
+        if (choreId != null) {
+            ChoreItem choreItem = toDoListItemRepository.findById(choreId)
+                    .filter(item -> item instanceof ChoreItem)
+                    .map(item -> (ChoreItem) item)
+                    .orElse(null);
+            if (choreItem != null) {
+                choreName = choreItem.getTitle();
+            }
+        }
+
+        StampCardResponse activeCard = getOrCreateActiveCard(username);
+        StampCard card = stampCardRepository.findById(activeCard.getId())
+                .orElseThrow(() -> new RuntimeException("Stamp card not found"));
+
+        if (card.isRedeemed() || card.getTotalStamps() >= MAX_SLOTS) {
+            StampCard newCard = createNewCard(card.getUser());
+            card = newCard;
+        }
+
+        StampSlot slot = fillNextSlot(card, null, user);
+        stampCardRepository.save(card);
+
+        RewardTransaction tx = RewardTransaction.builder()
+                .user(user)
+                .habitName(choreName)
+                .type(RewardTransaction.TransactionType.STAMP_EARNED)
+                .points(POINTS_PER_STAMP)
+                .stampCard(card)
+                .stampSlot(slot)
+                .build();
+        rewardTransactionRepository.save(tx);
+
+        user.setTotalPoints(user.getTotalPoints() + POINTS_PER_STAMP);
+        userRepository.save(user);
+    }
+
+    @Transactional
     public StampCardResponse redeemCard(String username, UUID cardId) {
         StampCard card = stampCardRepository.findById(cardId)
                 .orElseThrow(() -> new RuntimeException("Stamp card not found"));

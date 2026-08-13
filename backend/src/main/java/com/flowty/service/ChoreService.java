@@ -18,6 +18,7 @@ public class ChoreService {
 
     private final ToDoListItemRepository toDoListItemRepository;
     private final UserRepository userRepository;
+    private final StampCardService stampCardService;
 
     public List<ChoreResponse> getUserChores(String username) {
         User user = userRepository.findByUsername(username)
@@ -72,6 +73,11 @@ public class ChoreService {
 
         choreItem.setCompleted(!choreItem.getCompleted());
         toDoListItemRepository.save(choreItem);
+
+        if (choreItem.getCompleted()) {
+            stampCardService.addStampForChoreCompletion(username, choreId);
+        }
+
         return toResponse(choreItem);
     }
 
