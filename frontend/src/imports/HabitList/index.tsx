@@ -216,8 +216,7 @@ export default function HabitList({ className }: { className?: string }) {
                       </p>
                     </span>
                     {habit.currentStreak > 0 && (
-                      <span className="shrink-0 flex items-center gap-[2px]">
-                        <span className="leading-[10px] text-[8px]">🔥</span>
+                      <span className="shrink-0">
                         <p className="font-['Courier_Prime',sans-serif] leading-[12px] not-italic text-[var(--flowty-gold)] text-[8px] text-right whitespace-nowrap font-bold">
                           {habit.currentStreak}
                         </p>

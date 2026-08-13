@@ -242,11 +242,7 @@ export default function WhiteNoisePlayer() {
                     : "bg-[var(--flowty-surface)] border-[var(--flowty-ink)] hover:bg-[var(--flowty-paper-hover)]"
                 }`}
               >
-                <span className="block text-[14px] leading-none">
-                  {sound.icon}
-                </span>
-
-                <span className="block font-['Courier_Prime',sans-serif] font-bold leading-[11px] mt-[2px] text-[var(--flowty-ink)] text-[9px]">
+                <span className="block font-['Courier_Prime',sans-serif] font-bold leading-[11px] text-[var(--flowty-ink)] text-[9px]">
                   {sound.name}
                 </span>
               </button>
@@ -261,7 +257,7 @@ export default function WhiteNoisePlayer() {
             </p>
 
             <p className="font-['Courier_Prime',sans-serif] font-bold leading-[12px] text-[var(--flowty-ink)] text-[10px]">
-              {selectedSound.icon} {selectedSound.name}
+              {selectedSound.name}
             </p>
           </div>
 

@@ -7,6 +7,7 @@
 /Users/ben/coding/Flowty/backend/src/main/java/com/flowty/controller/AuthController.java
 /Users/ben/coding/Flowty/backend/src/main/java/com/flowty/controller/ChoreController.java
 /Users/ben/coding/Flowty/backend/src/main/java/com/flowty/controller/HabitController.java
+/Users/ben/coding/Flowty/backend/src/main/java/com/flowty/controller/RewardController.java
 /Users/ben/coding/Flowty/backend/src/main/java/com/flowty/controller/StampCardController.java
 /Users/ben/coding/Flowty/backend/src/main/java/com/flowty/controller/TimerController.java
 /Users/ben/coding/Flowty/backend/src/main/java/com/flowty/dto/AuthResponse.java
@@ -17,6 +18,8 @@
 /Users/ben/coding/Flowty/backend/src/main/java/com/flowty/dto/LoginRequest.java
 /Users/ben/coding/Flowty/backend/src/main/java/com/flowty/dto/RewardTransactionResponse.java
 /Users/ben/coding/Flowty/backend/src/main/java/com/flowty/dto/SignUpRequest.java
+/Users/ben/coding/Flowty/backend/src/main/java/com/flowty/dto/SpendRequest.java
+/Users/ben/coding/Flowty/backend/src/main/java/com/flowty/dto/SpendResponse.java
 /Users/ben/coding/Flowty/backend/src/main/java/com/flowty/dto/StampCardResponse.java
 /Users/ben/coding/Flowty/backend/src/main/java/com/flowty/dto/StampSlotResponse.java
 /Users/ben/coding/Flowty/backend/src/main/java/com/flowty/dto/TimerStateDto.java

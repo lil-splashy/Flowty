@@ -18,6 +18,7 @@ import CustomizationStore from "@/app/components/customization/CustomizationStor
 import * as authApi from "@/app/api/auth";
 import Journal from "@/app/components/journal/Journal";
 import ProfileSettings from "@/app/components/profile/ProfileSettings";
+import { WidgetVariantWrapper } from "@/app/components/customization/WidgetVariantWrapper";
 import {
   Dialog,
   DialogContent,
@@ -276,39 +277,42 @@ export default function Dashboard() {
       )}
 
       <div className="relative mx-auto" style={{ width: 1366, height: 638 }}>
+        {/* Pomodoro has its own variant system */}
         <DragItem placement={placements.pomodoro} onDragEnd={handleDragEnd}>
           <PomodoroTimer />
         </DragItem>
 
-        <DragItem placement={placements.todo} onDragEnd={handleDragEnd}>
-          <ToDoList />
-        </DragItem>
+        <WidgetVariantWrapper>
+          <DragItem placement={placements.todo} onDragEnd={handleDragEnd}>
+            <ToDoList />
+          </DragItem>
 
-        <DragItem placement={placements.habits} onDragEnd={handleDragEnd}>
-          <HabitList />
-        </DragItem>
+          <DragItem placement={placements.habits} onDragEnd={handleDragEnd}>
+            <HabitList />
+          </DragItem>
 
-        <DragItem placement={placements.stampCard} onDragEnd={handleDragEnd}>
-          <div className="flex items-center justify-center">
-            <Stampbook />
-          </div>
-        </DragItem>
+          <DragItem placement={placements.stampCard} onDragEnd={handleDragEnd}>
+            <div className="flex items-center justify-center">
+              <Stampbook />
+            </div>
+          </DragItem>
 
-        <DragItem placement={placements.chores} onDragEnd={handleDragEnd}>
-          <ChoreTable />
-        </DragItem>
+          <DragItem placement={placements.chores} onDragEnd={handleDragEnd}>
+            <ChoreTable />
+          </DragItem>
 
-        <DragItem placement={placements.d20} onDragEnd={handleDragEnd}>
-          <D20 />
-        </DragItem>
+          <DragItem placement={placements.d20} onDragEnd={handleDragEnd}>
+            <D20 />
+          </DragItem>
 
-        <DragItem placement={placements.whiteNoise} onDragEnd={handleDragEnd}>
-          <WhiteNoisePlayer />
-        </DragItem>
+          <DragItem placement={placements.whiteNoise} onDragEnd={handleDragEnd}>
+            <WhiteNoisePlayer />
+          </DragItem>
 
-        <DragItem placement={placements.journal} onDragEnd={handleDragEnd}>
-          <Journal />
-        </DragItem>
+          <DragItem placement={placements.journal} onDragEnd={handleDragEnd}>
+            <Journal />
+          </DragItem>
+        </WidgetVariantWrapper>
       </div>
     </div>
   );

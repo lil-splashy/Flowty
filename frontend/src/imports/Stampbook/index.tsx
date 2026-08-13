@@ -91,7 +91,7 @@ export default function Stampbook({ className }: { className?: string }) {
   }, [card, fetchCard]);
 
   const defaultClasses =
-    "bg-[var(--flowty-paper)] border-[var(--flowty-ink)] border-[1.786px] border-solid overflow-clip relative rounded-[2.382px] shadow-[10px_-1px_2px_0px_var(--flowty-shadow-stamp),2.977px_2.977px_0px_0px_var(--flowty-ink)] h-[320px] w-[343.487px]";
+    "bg-[var(--flowty-paper)] border-[var(--flowty-ink)] border-[1.786px] border-solid overflow-clip relative rounded-[2.382px] shadow-[10px_-1px_2px_0px_var(--flowty-shadow-stamp),2.977px_2.977px_0px_0px_var(--flowty-ink)] h-[215px] w-[343.487px]";
 
   const canRedeem = card && card.totalStamps >= 10 && !card.redeemed;
   const progressPercent = card ? (card.totalStamps / 10) * 100 : 0;
