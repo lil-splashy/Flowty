@@ -27,9 +27,25 @@ public class RewardService {
 
         rewardTransactionRepository.save(transaction);
 
-        int current = user.getTotalPoints();
-        user.setTotalPoints(current + points);
-        userRepository.save(user);
+        userRepository.addPoints(user.getUsername(), points);
+
+        return transaction;
+    }
+
+    @Transactional
+    public RewardTransaction spendPoints(User user, int points, String itemName) {
+        int updated = userRepository.deductPoints(user.getUsername(), points);
+        if (updated == 0) {
+            throw new RuntimeException("Insufficient points");
+        }
+
+        RewardTransaction transaction = new RewardTransaction();
+        transaction.setUser(user);
+        transaction.setPoints(-points);
+        transaction.setType(TransactionType.PURCHASE);
+        transaction.setHabitName(itemName);
+
+        rewardTransactionRepository.save(transaction);
 
         return transaction;
     }
