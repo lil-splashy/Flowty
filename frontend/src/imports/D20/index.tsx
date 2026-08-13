@@ -190,8 +190,8 @@ function DiceScene({
         <lineSegments geometry={edgesGeometry}>
           <lineBasicMaterial color="#1a1a2e" linewidth={2} />
         </lineSegments>
+        <FaceLabels faces={faces} />
       </mesh>
-      <FaceLabels faces={faces} />
     </group>
   );
 }
