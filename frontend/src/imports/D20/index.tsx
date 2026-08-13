@@ -216,9 +216,10 @@ const D20 = forwardRef<D20Ref, { className?: string }>(function D20(
 
   return (
     <div
+      onClick={triggerRoll}
       className={
         className ||
-        "drop-shadow-[3px_1px_1.25px_rgba(0,0,0,0.6),-1px_-2px_1.5px_rgba(0,0,0,0.6)] h-[89px] relative w-[85px]"
+        "drop-shadow-[3px_1px_1.25px_rgba(0,0,0,0.6),-1px_-2px_1.5px_rgba(0,0,0,0.6)] cursor-pointer h-[89px] relative w-[85px]"
       }
       data-name="D20"
       aria-label="Roll a D20"
@@ -226,7 +227,7 @@ const D20 = forwardRef<D20Ref, { className?: string }>(function D20(
       <Canvas
         camera={{ position: [0, 0, 3.2], fov: 35 }}
         gl={{ antialias: true, alpha: true }}
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "100%", height: "100%", pointerEvents: "none" }}
       >
         <ambientLight intensity={1.2} />
         <directionalLight position={[4, 6, 5]} intensity={1.5} castShadow />
