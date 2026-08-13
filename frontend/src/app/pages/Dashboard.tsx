@@ -94,6 +94,7 @@ export default function Dashboard() {
   );
 
   const saveTimeoutRef = useRef<number | null>(null);
+  const zIndexCounterRef = useRef(100);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,6 +103,13 @@ export default function Dashboard() {
       .getWidgetPlacements()
       .then((saved) => {
         if (cancelled) return;
+
+        if (saved.length > 0) {
+          const maxZ = Math.max(...saved.map((p) => p.zIndex));
+          if (maxZ > zIndexCounterRef.current) {
+            zIndexCounterRef.current = maxZ;
+          }
+        }
 
         setPlacements((current) => {
           const next = { ...current };
@@ -134,7 +142,9 @@ export default function Dashboard() {
 
   function handleDragEnd(updated: Placement) {
     setPlacements((current) => {
-      const next = { ...current, [updated.widgetId]: updated };
+      zIndexCounterRef.current += 1;
+      const promoted = { ...updated, zIndex: zIndexCounterRef.current };
+      const next = { ...current, [updated.widgetId]: promoted };
       persistPlacements(next);
       return next;
     });
