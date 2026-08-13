@@ -1,7 +1,7 @@
 package com.flowty.service;
 
 import com.flowty.model.RewardTransaction;
-import com.flowty.model.RewardTransaction.RewardReason;
+import com.flowty.model.RewardTransaction.TransactionType;
 import com.flowty.model.User;
 import com.flowty.repository.RewardTransactionRepository;
 import com.flowty.repository.UserRepository;
@@ -19,27 +19,26 @@ public class RewardService {
     private final UserRepository userRepository;
 
     @Transactional
-    public RewardTransaction awardPoints(User user, int amount, RewardReason reason, Long referenceId) {
+    public RewardTransaction awardPoints(User user, int points, TransactionType type) {
         RewardTransaction transaction = new RewardTransaction();
         transaction.setUser(user);
-        transaction.setAmount(amount);
-        transaction.setReason(reason);
-        transaction.setReferenceId(referenceId);
+        transaction.setPoints(points);
+        transaction.setType(type);
 
         rewardTransactionRepository.save(transaction);
 
-        int current = user.getRewardBalance() == null ? 0: user.getRewardBalance();
-    user.setRewardBalance(current + amount);
+        int current = user.getTotalPoints();
+        user.setTotalPoints(current + points);
         userRepository.save(user);
 
         return transaction;
     }
 
     public int getBalance(User user) {
-        return user.getRewardBalance();
+        return user.getTotalPoints();
     }
 
     public List<RewardTransaction> getHistory(User user) {
-        return rewardTransactionRepository.findByUserOrderByTimestampDesc(user);
+        return rewardTransactionRepository.findByUserOrderByCreatedAtDesc(user);
     }
 }

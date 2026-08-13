@@ -24,7 +24,6 @@ public class HabitService {
 
     private final ToDoListItemRepository toDoListItemRepository;
     private final UserRepository userRepository;
-    private final RewardService rewardService;
     private final StampCardService stampCardService;
 
     public List<HabitResponse> getUserHabits(String username) {
