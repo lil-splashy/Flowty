@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTheme } from "@/app/context/ThemeContext";
+import { THEMES, type ThemeId } from "@/app/theme/themes";
 
 type Category = "background" | "widget" | "pomodoro";
 
@@ -127,6 +129,7 @@ function loadStoreState(): StoreState {
 }
 
 export default function CustomizationStore() {
+  const { theme, applyTheme } = useTheme();
   const [storeState, setStoreState] =
     useState<StoreState>(loadStoreState);
 
@@ -134,6 +137,10 @@ export default function CustomizationStore() {
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(storeState));
+    // Notify same-tab listeners (ThemeContext, other components) so
+    // customization changes apply live. Other tabs get the native
+    // "storage" event automatically.
+    window.dispatchEvent(new CustomEvent("flowty:theme-change"));
   }, [storeState]);
 
   useEffect(() => {
@@ -220,6 +227,100 @@ export default function CustomizationStore() {
     setMessage(`${item.name} selected.`);
   }
 
+  function renderThemeSection() {
+    return (
+      <section style={{ marginBottom: 24 }}>
+        <h3
+          style={{
+            marginBottom: 10,
+            fontSize: 18,
+            color: "var(--flowty-ink)",
+          }}
+        >
+          Themes
+        </h3>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          {THEMES.map((t) => {
+            const selected = theme === t.id;
+
+            return (
+              <div
+                key={t.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: 12,
+                  border: "1px solid var(--flowty-ink)",
+                  borderRadius: 8,
+                  background: "var(--flowty-paper)",
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      color: "var(--flowty-ink)",
+                    }}
+                  >
+                    {t.name}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 12,
+                      marginTop: 3,
+                      color: "var(--flowty-text-secondary)",
+                    }}
+                  >
+                    {t.description}
+                  </div>
+                </div>
+
+                {selected ? (
+                  <button
+                    disabled
+                    style={{
+                      padding: "7px 12px",
+                      borderRadius: 6,
+                      border: "1px solid var(--flowty-ink)",
+                      background: "var(--flowty-accent)",
+                      color: "var(--flowty-ink)",
+                    }}
+                  >
+                    Selected
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => applyTheme(t.id as ThemeId)}
+                    style={{
+                      padding: "7px 12px",
+                      borderRadius: 6,
+                      border: "1px solid var(--flowty-ink)",
+                      background: "var(--flowty-paper)",
+                      color: "var(--flowty-ink)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Select
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
+
   function renderSection(title: string, items: StoreItem[]) {
     return (
       <section style={{ marginBottom: 24 }}>
@@ -227,7 +328,7 @@ export default function CustomizationStore() {
           style={{
             marginBottom: 10,
             fontSize: 18,
-            color: "#1a1a2e",
+            color: "var(--flowty-ink)",
           }}
         >
           {title}
@@ -253,16 +354,16 @@ export default function CustomizationStore() {
                   alignItems: "center",
                   gap: 12,
                   padding: 12,
-                  border: "1px solid #1a1a2e",
+                  border: "1px solid var(--flowty-ink)",
                   borderRadius: 8,
-                  background: "#f2edc7",
+                  background: "var(--flowty-paper)",
                 }}
               >
                 <div style={{ flex: 1 }}>
                   <div
                     style={{
                       fontWeight: 700,
-                      color: "#1a1a2e",
+                      color: "var(--flowty-ink)",
                     }}
                   >
                     {item.name}
@@ -272,7 +373,7 @@ export default function CustomizationStore() {
                     style={{
                       fontSize: 12,
                       marginTop: 3,
-                      color: "#444",
+                      color: "var(--flowty-text-secondary)",
                     }}
                   >
                     {item.description}
@@ -290,7 +391,7 @@ export default function CustomizationStore() {
                     <span
                       style={{
                         fontWeight: 700,
-                        color: "#1a1a2e",
+                        color: "var(--flowty-ink)",
                       }}
                     >
                       {item.price} 🪙
@@ -303,8 +404,9 @@ export default function CustomizationStore() {
                       style={{
                         padding: "7px 12px",
                         borderRadius: 6,
-                        border: "1px solid #1a1a2e",
-                        background: "#b7d5a5",
+                        border: "1px solid var(--flowty-ink)",
+                        background: "var(--flowty-accent)",
+                        color: "var(--flowty-ink)",
                       }}
                     >
                       Selected
@@ -315,8 +417,9 @@ export default function CustomizationStore() {
                       style={{
                         padding: "7px 12px",
                         borderRadius: 6,
-                        border: "1px solid #1a1a2e",
-                        background: "#e7e1af",
+                        border: "1px solid var(--flowty-ink)",
+                        background: "var(--flowty-paper)",
+                        color: "var(--flowty-ink)",
                         cursor: "pointer",
                       }}
                     >
@@ -328,8 +431,9 @@ export default function CustomizationStore() {
                       style={{
                         padding: "7px 12px",
                         borderRadius: 6,
-                        border: "1px solid #1a1a2e",
-                        background: "#e7e1af",
+                        border: "1px solid var(--flowty-ink)",
+                        background: "var(--flowty-paper)",
+                        color: "var(--flowty-ink)",
                         cursor: "pointer",
                       }}
                     >
@@ -352,10 +456,10 @@ export default function CustomizationStore() {
         maxHeight: 540,
         overflowY: "auto",
         padding: 18,
-        background: "#fff8d6",
-        border: "2px solid #1a1a2e",
+        background: "var(--flowty-paper)",
+        border: "2px solid var(--flowty-ink)",
         borderRadius: 12,
-        boxShadow: "4px 4px 0 rgba(0,0,0,0.25)",
+        boxShadow: "4px 4px 0 var(--flowty-shadow-stamp)",
         fontFamily: "Courier Prime, monospace",
       }}
     >
@@ -371,7 +475,7 @@ export default function CustomizationStore() {
           <h2
             style={{
               margin: 0,
-              color: "#1a1a2e",
+              color: "var(--flowty-ink)",
               fontSize: 24,
             }}
           >
@@ -382,7 +486,7 @@ export default function CustomizationStore() {
             style={{
               marginTop: 4,
               fontSize: 13,
-              color: "#555",
+              color: "var(--flowty-text-secondary)",
             }}
           >
             Purchase and select Flowty customizations
@@ -392,11 +496,11 @@ export default function CustomizationStore() {
         <div
           style={{
             padding: "8px 12px",
-            background: "#e7e1af",
-            border: "1px solid #1a1a2e",
+            background: "var(--flowty-paper)",
+            border: "1px solid var(--flowty-ink)",
             borderRadius: 8,
             fontWeight: 700,
-            color: "#1a1a2e",
+            color: "var(--flowty-ink)",
           }}
         >
           🪙 {storeState.balance}
@@ -408,16 +512,18 @@ export default function CustomizationStore() {
           style={{
             marginBottom: 14,
             padding: 9,
-            background: "#dfe8c5",
-            border: "1px solid #1a1a2e",
+            background: "var(--flowty-accent)",
+            border: "1px solid var(--flowty-ink)",
             borderRadius: 6,
             fontSize: 13,
-            color: "#1a1a2e",
+            color: "var(--flowty-ink)",
           }}
         >
           {message}
         </div>
       )}
+
+      {renderThemeSection()}
 
       {renderSection("Backgrounds", groupedItems.background)}
 

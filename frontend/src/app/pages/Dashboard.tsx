@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import blueprintBg from "@/imports/blueprint-background.png";
+import forestBg from "@/imports/ForestBackground.png";
+import sunsetBg from "@/imports/SunsetBackground.png";
+import nightSkyBg from "@/imports/NightSkyBackground.png";
 import flowtyLogo from "@/imports/FlowtyLogo.png";
 import ChoreTable from "@/imports/ChoreTable/index";
 import D20 from "@/imports/D20/index";
@@ -20,6 +23,26 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/app/components/ui/dialog";
+
+const STORAGE_KEY = "flowty-customization-store";
+
+const BACKGROUND_MAP: Record<string, string> = {
+  "background-blueprint": blueprintBg,
+  "background-forest": forestBg,
+  "background-sunset": sunsetBg,
+  "background-night": nightSkyBg,
+};
+
+function getSelectedBackground(): string {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return "background-blueprint";
+    const parsed = JSON.parse(saved) as { selectedBackground?: string };
+    return parsed.selectedBackground ?? "background-blueprint";
+  } catch {
+    return "background-blueprint";
+  }
+}
 
 const WIDGET_DEFAULTS: Record<string, { x: number; y: number; zIndex: number }> = {
   pomodoro: { x: 23, y: -58, zIndex: 10 },
@@ -85,6 +108,20 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
   const [isStoreOpen, setIsStoreOpen] = useState(false);
+
+  const [selectedBackground, setSelectedBackground] = useState(getSelectedBackground);
+
+  useEffect(() => {
+    const handleChange = () => setSelectedBackground(getSelectedBackground());
+    window.addEventListener("flowty:theme-change", handleChange);
+    window.addEventListener("storage", handleChange);
+    return () => {
+      window.removeEventListener("flowty:theme-change", handleChange);
+      window.removeEventListener("storage", handleChange);
+    };
+  }, []);
+
+  const bgUrl = BACKGROUND_MAP[selectedBackground] ?? blueprintBg;
 
   const [placements, setPlacements] = useState<Record<string, Placement>>(() =>
     Object.entries(WIDGET_DEFAULTS).reduce((acc, [widgetId, defaults]) => {
@@ -159,7 +196,7 @@ export default function Dashboard() {
     <div
       className="min-h-screen w-full overflow-auto"
       style={{
-        backgroundImage: `url(${blueprintBg})`,
+        backgroundImage: `url(${bgUrl})`,
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -172,8 +209,8 @@ export default function Dashboard() {
       <div className="absolute top-3 right-4 z-50 flex items-center gap-4">
         <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
           <DialogTrigger asChild>
-            <button className="bg-[#e7e1af] rounded px-3 py-1 border border-[#1a1a2e] cursor-pointer hover:brightness-95">
-              <span className="text-[#1a1a2e] text-sm font-['Courier_Prime']">
+            <button className="bg-[var(--flowty-paper)] rounded px-3 py-1 border border-[var(--flowty-ink)] cursor-pointer hover:brightness-95">
+              <span className="text-[var(--flowty-ink)] text-sm font-['Courier_Prime']">
                 {user?.username}
               </span>
             </button>
@@ -185,14 +222,14 @@ export default function Dashboard() {
 
         <button
           onClick={() => setIsStoreOpen(true)}
-          className="rounded px-3 py-1 bg-[#e7e1af] text-[#1a1a2e] text-sm font-['Courier_Prime'] border border-[#1a1a2e]"
+          className="rounded px-3 py-1 bg-[var(--flowty-paper)] text-[var(--flowty-ink)] text-sm font-['Courier_Prime'] border border-[var(--flowty-ink)]"
         >
           Store
         </button>
 
         <button
           onClick={handleLogout}
-          className="rounded px-3 py-1 bg-[#1a1a2e] text-[#e7e1af] text-sm font-['Special_Elite'] hover:bg-[#2a2a4e] transition-colors border border-[#1a1a2e]"
+          className="rounded px-3 py-1 bg-[var(--flowty-ink)] text-[var(--flowty-paper)] text-sm font-['Special_Elite'] hover:bg-[var(--flowty-title-hover)] transition-colors border border-[var(--flowty-ink)]"
         >
           Logout
         </button>
@@ -222,9 +259,9 @@ export default function Dashboard() {
                 width: 30,
                 height: 30,
                 borderRadius: "50%",
-                border: "1px solid #1a1a2e",
-                background: "#e7e1af",
-                color: "#1a1a2e",
+                border: "1px solid var(--flowty-ink)",
+                background: "var(--flowty-paper)",
+                color: "var(--flowty-ink)",
                 cursor: "pointer",
                 fontWeight: "bold",
               }}

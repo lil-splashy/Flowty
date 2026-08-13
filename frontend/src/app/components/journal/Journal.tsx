@@ -115,29 +115,29 @@ const newEntry: JournalEntry = {
   }
 
   const defaultClasses =
-    "bg-[#e7e1af] border-[#1a1a2e] border-[1.5px] border-solid drop-shadow-[5px_3px_2px_rgba(0,0,0,0.6)] h-[500px] overflow-hidden relative rounded-[2px] shadow-[5px_3px_4px_0px_rgba(0,0,0,0.61)] w-[468px]";
+    "bg-[var(--flowty-paper)] border-[var(--flowty-ink)] border-[1.5px] border-solid drop-shadow-[5px_3px_2px_rgba(0,0,0,0.6)] h-[500px] overflow-hidden relative rounded-[2px] shadow-[5px_3px_4px_0px_rgba(0,0,0,0.61)] w-[468px]";
 
   return (
     <div className={className || defaultClasses} data-name="Journal">
       <div className="content-stretch flex flex-col items-start overflow-clip p-px relative rounded-[inherit] size-full">
         <div
-          className="bg-[#4bbec8] border-b-[#1a1a2e] border-b-[1.5px] border-solid content-stretch flex h-[34px] items-center px-[10px] relative shrink-0 w-full"
+          className="bg-[var(--flowty-title-bg)] border-b-[var(--flowty-ink)] border-b-[1.5px] border-solid content-stretch flex h-[34px] items-center px-[10px] relative shrink-0 w-full"
           data-name="Title"
         >
-          <p className="font-['Permanent_Marker',sans-serif] leading-[13px] not-italic relative shrink-0 text-[#1a1a2e] text-[12px] whitespace-nowrap">
+          <p className="font-['Permanent_Marker',sans-serif] leading-[13px] not-italic relative shrink-0 text-[var(--flowty-ink)] text-[12px] whitespace-nowrap">
             JOURNAL
           </p>
           <div className="flex-[1_0_0] h-[20px] min-w-px relative" />
           <button
             onClick={() => (adding ? clearForm() : setAdding(true))}
-            className="font-['Courier_Prime',sans-serif] leading-[10px] not-italic relative shrink-0 text-[#1a1a2e] text-[9px] bg-[#e7e1af] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[6px] py-[2px] hover:bg-[#d5cf9e] transition-colors"
+            className="font-['Courier_Prime',sans-serif] leading-[10px] not-italic relative shrink-0 text-[var(--flowty-ink)] text-[9px] bg-[var(--flowty-paper)] border-[var(--flowty-ink)] border-[1px] border-solid rounded-[2px] px-[6px] py-[2px] hover:bg-[var(--flowty-paper-hover)] transition-colors"
           >
             {adding ? "\u2715" : "+ Add Entry"}
           </button>
         </div>
 
         {adding && (
-          <div className="w-full px-[8px] py-[6px] border-b-[#1a1a2e] border-b-[1px] border-solid flex flex-col gap-[4px]">
+          <div className="w-full px-[8px] py-[6px] border-b-[var(--flowty-ink)] border-b-[1px] border-solid flex flex-col gap-[4px]">
             <input
               value={title}
               onChange={(e) => {
@@ -150,12 +150,12 @@ const newEntry: JournalEntry = {
               placeholder="Entry title"
               maxLength={200}
               autoFocus
-              className="font-['Courier_Prime',sans-serif] text-[9px] text-[#3a2a10] bg-[rgba(255,255,255,0.5)] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[4px] py-[2px] outline-none"
+              className="font-['Courier_Prime',sans-serif] text-[9px] text-[var(--flowty-text)] bg-[var(--flowty-input-bg)] border-[var(--flowty-ink)] border-[1px] border-solid rounded-[2px] px-[4px] py-[2px] outline-none"
             />
             <select
               value={mood}
               onChange={(e) => setMood(e.target.value)}
-              className="font-['Courier_Prime',sans-serif] text-[9px] text-[#3a2a10] bg-[rgba(255,255,255,0.5)] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[4px] py-[2px] outline-none"
+              className="font-['Courier_Prime',sans-serif] text-[9px] text-[var(--flowty-text)] bg-[var(--flowty-input-bg)] border-[var(--flowty-ink)] border-[1px] border-solid rounded-[2px] px-[4px] py-[2px] outline-none"
             >
               {MOODS.map((m) => (
                 <option key={m} value={m}>
@@ -171,25 +171,25 @@ const newEntry: JournalEntry = {
               }}
               placeholder="Write your thoughts here..."
               rows={4}
-              className="font-['Courier_Prime',sans-serif] text-[9px] text-[#3a2a10] bg-[rgba(255,255,255,0.5)] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[4px] py-[2px] outline-none resize-none"
+              className="font-['Courier_Prime',sans-serif] text-[9px] text-[var(--flowty-text)] bg-[var(--flowty-input-bg)] border-[var(--flowty-ink)] border-[1px] border-solid rounded-[2px] px-[4px] py-[2px] outline-none resize-none"
             />
             <div className="flex gap-[4px] items-center">
               <button
                 onClick={saveEntry}
-                className="font-['Courier_Prime',sans-serif] text-[9px] text-[#1a1a2e] bg-[#c5f06a] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[8px] py-[2px] hover:opacity-80 transition-opacity"
+                className="font-['Courier_Prime',sans-serif] text-[9px] text-[var(--flowty-ink)] bg-[var(--flowty-accent)] border-[var(--flowty-ink)] border-[1px] border-solid rounded-[2px] px-[8px] py-[2px] hover:opacity-80 transition-opacity"
               >
                 {editingId ? "Update" : "Save"}
               </button>
               {editingId && (
                 <button
                   onClick={clearForm}
-                  className="font-['Courier_Prime',sans-serif] text-[9px] text-[#1a1a2e] bg-[#e7e1af] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[8px] py-[2px] hover:bg-[#d5cf9e] transition-colors"
+                  className="font-['Courier_Prime',sans-serif] text-[9px] text-[var(--flowty-ink)] bg-[var(--flowty-paper)] border-[var(--flowty-ink)] border-[1px] border-solid rounded-[2px] px-[8px] py-[2px] hover:bg-[var(--flowty-paper-hover)] transition-colors"
                 >
                   Cancel
                 </button>
               )}
               {message && (
-                <p className="font-['Courier_Prime',sans-serif] text-[8px] text-[#4bbec8] leading-[10px]">
+                <p className="font-['Courier_Prime',sans-serif] text-[8px] text-[var(--flowty-title-bg)] leading-[10px]">
                   {message}
                 </p>
               )}
@@ -197,12 +197,12 @@ const newEntry: JournalEntry = {
           </div>
         )}
 
-        <div className="w-full px-[8px] py-[4px] border-b-[#1a1a2e] border-b-[1px] border-solid">
+        <div className="w-full px-[8px] py-[4px] border-b-[var(--flowty-ink)] border-b-[1px] border-solid">
           <input
             type="search"
             value={search}
             placeholder="Search entries..."
-            className="w-full font-['Courier_Prime',sans-serif] text-[9px] text-[#3a2a10] bg-[rgba(255,255,255,0.5)] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[4px] py-[2px] outline-none"
+            className="w-full font-['Courier_Prime',sans-serif] text-[9px] text-[var(--flowty-text)] bg-[var(--flowty-input-bg)] border-[var(--flowty-ink)] border-[1px] border-solid rounded-[2px] px-[4px] py-[2px] outline-none"
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
@@ -210,7 +210,7 @@ const newEntry: JournalEntry = {
         <div className="flex-1 overflow-y-auto overflow-x-hidden relative w-full max-h-[420px]">
           {filteredEntries.length === 0 ? (
             <div className="flex items-center justify-center h-[100px]">
-              <p className="font-['Courier_Prime',sans-serif] leading-[14px] not-italic text-[#8a6a40] text-[10px]">
+              <p className="font-['Courier_Prime',sans-serif] leading-[14px] not-italic text-[var(--flowty-text-secondary)] text-[10px]">
                 {search ? "No matching entries" : "No entries yet"}
               </p>
             </div>
@@ -219,36 +219,36 @@ const newEntry: JournalEntry = {
               {filteredEntries.map((entry, idx) => (
                 <div
                   key={entry.id}
-                  className={`relative shrink-0 w-full group border-b border-[rgba(126,229,231,0.4)] border-solid ${
-                    idx % 2 === 0 ? "bg-transparent" : "bg-[rgba(0,0,0,0.02)]"
+                  className={`relative shrink-0 w-full group border-b border-[var(--flowty-accent-border)] border-solid ${
+                    idx % 2 === 0 ? "bg-transparent" : "bg-[var(--flowty-row-alt)]"
                   }`}
                   data-name="Entry"
                 >
-                  <div className="content-stretch flex flex-col gap-[2px] px-[10px] py-[6px] relative w-full hover:bg-[rgba(0,0,0,0.03)] transition-colors">
+                  <div className="content-stretch flex flex-col gap-[2px] px-[10px] py-[6px] relative w-full hover:bg-[var(--flowty-row-hover)] transition-colors">
                     <div className="flex items-center gap-[6px]">
-                      <p className="flex-1 font-['Courier_Prime',sans-serif] leading-[12px] not-italic text-[#3a2a10] text-[9px] font-bold truncate">
+                      <p className="flex-1 font-['Courier_Prime',sans-serif] leading-[12px] not-italic text-[var(--flowty-text)] text-[9px] font-bold truncate">
                         {entry.title}
                       </p>
-                      <span className="shrink-0 font-['Courier_Prime',sans-serif] leading-[10px] not-italic text-[#8a6a40] text-[7px]">
+                      <span className="shrink-0 font-['Courier_Prime',sans-serif] leading-[10px] not-italic text-[var(--flowty-text-secondary)] text-[7px]">
                         {entry.mood}
                       </span>
-                      <span className="shrink-0 font-['Courier_Prime',sans-serif] leading-[10px] not-italic text-[#8a6a40] text-[7px]">
+                      <span className="shrink-0 font-['Courier_Prime',sans-serif] leading-[10px] not-italic text-[var(--flowty-text-secondary)] text-[7px]">
                         {new Date(entry.createdAt).toLocaleDateString()}
                       </span>
                       <button
                         onClick={() => editEntry(entry)}
-                        className="shrink-0 font-['Courier_Prime',sans-serif] text-[#8a6a40] text-[9px] opacity-0 group-hover:opacity-100 transition-opacity hover:text-[#1a1a2e] leading-[10px]"
+                        className="shrink-0 font-['Courier_Prime',sans-serif] text-[var(--flowty-text-secondary)] text-[9px] opacity-0 group-hover:opacity-100 transition-opacity hover:text-[var(--flowty-ink)] leading-[10px]"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => deleteEntry(entry.id)}
-                        className="shrink-0 font-['Courier_Prime',sans-serif] text-[#8a6a40] text-[9px] opacity-0 group-hover:opacity-100 transition-opacity hover:text-[#a33] leading-[10px]"
+                        className="shrink-0 font-['Courier_Prime',sans-serif] text-[var(--flowty-text-secondary)] text-[9px] opacity-0 group-hover:opacity-100 transition-opacity hover:text-[var(--flowty-danger)] leading-[10px]"
                       >
                         {"\u2715"}
                       </button>
                     </div>
-                    <p className="font-['Courier_Prime',sans-serif] leading-[14px] not-italic text-[#3a2a10] text-[9px] whitespace-pre-wrap line-clamp-3">
+                    <p className="font-['Courier_Prime',sans-serif] leading-[14px] not-italic text-[var(--flowty-text)] text-[9px] whitespace-pre-wrap line-clamp-3">
                       {entry.content}
                     </p>
                   </div>

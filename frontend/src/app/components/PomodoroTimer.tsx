@@ -77,7 +77,9 @@ export function PomodoroTimer() {
   const progress = total > 0 ? remaining / total : 0;
   const dashOffset = CIRC * (1 - progress);
 
-  const faceColor = isBreak ? "#65C98B" : "#C96565";
+  const faceColor = isBreak
+    ? "var(--flowty-timer-break)"
+    : "var(--flowty-timer-work)";
 
   useEffect(() => {
     if (!isRunning) {

@@ -12,6 +12,7 @@ import {
 } from "@/app/theme/themes";
 
 const STORAGE_KEY = "flowty-customization-store";
+const THEME_CHANGE_EVENT = "flowty:theme-change";
 
 function readSelectedTheme(): ThemeId {
   try {
@@ -63,9 +64,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       applyThemeToDocument(next);
     };
 
+    // "storage" fires in other tabs/windows; the custom event fires
+    // immediately within this tab so changes feel live.
     window.addEventListener("storage", handleChange);
+    window.addEventListener(THEME_CHANGE_EVENT, handleChange);
     return () => {
       window.removeEventListener("storage", handleChange);
+      window.removeEventListener(THEME_CHANGE_EVENT, handleChange);
     };
   }, []);
 
@@ -73,6 +78,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     persistSelectedTheme(next);
     applyThemeToDocument(next);
     setTheme(next);
+    // Notify any other listeners in this tab (and any future code that
+    // persists to the shared customization store without this context).
+    window.dispatchEvent(new CustomEvent(THEME_CHANGE_EVENT));
   }, []);
 
   return (

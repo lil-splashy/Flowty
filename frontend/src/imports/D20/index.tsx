@@ -1,6 +1,7 @@
 import { useRef, useState, useMemo, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { useTheme } from "@/app/context/ThemeContext";
 
 export interface D20Ref {
   roll: () => void;
@@ -8,6 +9,11 @@ export interface D20Ref {
 
 function rollD20(): number {
   return Math.floor(Math.random() * 20) + 1;
+}
+
+function cssVar(name: string, fallback: string): string {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
 }
 
 function createFaceTexture(number: number): THREE.CanvasTexture {
@@ -25,7 +31,10 @@ function createFaceTexture(number: number): THREE.CanvasTexture {
   const x3 = m;
   const y3 = m;
 
-  ctx.fillStyle = "#1a1a2e";
+  const ink = cssVar("--flowty-ink", "#1a1a2e");
+  const paper = cssVar("--flowty-surface", "#E1DBAA");
+
+  ctx.fillStyle = ink;
   ctx.fillRect(0, 0, size, size);
 
   ctx.beginPath();
@@ -33,10 +42,10 @@ function createFaceTexture(number: number): THREE.CanvasTexture {
   ctx.lineTo(x2, y2);
   ctx.lineTo(x3, y3);
   ctx.closePath();
-  ctx.fillStyle = "#1a1a2e";
+  ctx.fillStyle = ink;
   ctx.fill();
   ctx.lineWidth = 3;
-  ctx.strokeStyle = "#1a1a2e";
+  ctx.strokeStyle = ink;
   ctx.stroke();
 
   const bevel = 10;
@@ -60,7 +69,7 @@ function createFaceTexture(number: number): THREE.CanvasTexture {
   ctx.lineTo(ix2, iy2);
   ctx.lineTo(ix3, iy3);
   ctx.closePath();
-  ctx.fillStyle = "#E1DBAA";
+  ctx.fillStyle = paper;
   ctx.fill();
   ctx.strokeStyle = "rgba(26, 26, 46, 0.22)";
   ctx.lineWidth = 1.5;
@@ -73,7 +82,7 @@ function createFaceTexture(number: number): THREE.CanvasTexture {
   ctx.fillStyle = "rgba(0, 0, 0, 0.16)";
   ctx.fillText(String(number), cx + 1.5, cy + 2);
 
-  ctx.fillStyle = "#1a1a2e";
+  ctx.fillStyle = ink;
   ctx.fillText(String(number), cx, cy);
 
   const tex = new THREE.CanvasTexture(canvas);
@@ -99,6 +108,8 @@ function createTriangleGeometry(a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vec
 
 interface FaceData {
   normal: THREE.Vector3;
+  /** Direction in the face plane where the printed number's "up" points. */
+  up: THREE.Vector3;
 }
 
 function buildDieFaces(): { meshes: THREE.Mesh[]; faces: FaceData[] } {
@@ -115,7 +126,33 @@ function buildDieFaces(): { meshes: THREE.Mesh[]; faces: FaceData[] } {
     const normal = new THREE.Vector3()
       .crossVectors(new THREE.Vector3().subVectors(b, a), new THREE.Vector3().subVectors(c, a))
       .normalize();
-    faces.push({ normal });
+
+    // UVs are (0.5,0), (1,1), (0,1) for a,b,c. The texture's "up" (v+)
+    // direction in the face plane points from the UV centroid toward the
+    // midpoint of the top edge (uv (0,1)-(1,1)), i.e. b+c over 2.
+    const uvCentroid = new THREE.Vector3(0.5, 2 / 3, 0);
+    const uvTopMid = new THREE.Vector3(0.5, 1, 0);
+    const e1 = new THREE.Vector3().subVectors(b, a);
+    const e2 = new THREE.Vector3().subVectors(c, a);
+    // Solve uv offset as a combination of the 3D edge vectors.
+    const duv = new THREE.Vector2().subVectors(
+      new THREE.Vector2(uvTopMid.x, uvTopMid.y),
+      new THREE.Vector2(uvCentroid.x, uvCentroid.y)
+    );
+    const uvA = new THREE.Vector2(0.5, 0);
+    const uvB = new THREE.Vector2(1, 1);
+    const uvC = new THREE.Vector2(0, 1);
+    const dB = new THREE.Vector2().subVectors(uvB, uvA);
+    const dC = new THREE.Vector2().subVectors(uvC, uvA);
+    const det = dB.x * dC.y - dB.y * dC.x;
+    const s = (duv.x * dC.y - duv.y * dC.x) / det;
+    const t = (dB.x * duv.y - dB.y * duv.x) / det;
+    const up = new THREE.Vector3()
+      .addScaledVector(e1, s)
+      .addScaledVector(e2, t)
+      .normalize();
+
+    faces.push({ normal, up });
 
     const number = i / 3 + 1;
     const material = new THREE.MeshStandardMaterial({
@@ -147,6 +184,10 @@ interface RollSpec {
   key: number;
 }
 
+// Tilt applied after alignment so the winning face leans toward the camera
+// instead of pointing straight up (camera sits at (0, 1.9, 3.4)).
+const FACE_TILT_TOWARD_CAMERA = Math.atan2(3.4, 1.9) - Math.PI / 12;
+
 function DiceScene({
   rollSpec,
   onRollingChange,
@@ -155,15 +196,25 @@ function DiceScene({
   onRollingChange?: (rolling: boolean) => void;
 }) {
   const dieRef = useRef<THREE.Group>(null);
-  const { meshes, faces } = useMemo(buildDieFaces, []);
+  const { theme } = useTheme();
+  const { meshes, faces } = useMemo(buildDieFaces, [theme]);
   const [rolling, setRolling] = useState(false);
   const lastRollKey = useRef<number | null>(null);
 
-  // Camera direction: from die origin (0,0,0) toward camera at (0, 1.8, 3.0)
-  const cameraDir = useMemo(
-    () => new THREE.Vector3(0, 1.8, 3.0).normalize(),
-    []
-  );
+  // Free GPU resources for the previous theme's textures/materials.
+  useEffect(() => {
+    return () => {
+      meshes.forEach((mesh) => {
+        mesh.geometry.dispose();
+        const mat = mesh.material as THREE.MeshStandardMaterial;
+        mat.map?.dispose();
+        mat.dispose();
+      });
+    };
+  }, [meshes]);
+
+  // World "up": the winning face rests flat, facing upward.
+  const upDir = useMemo(() => new THREE.Vector3(0, 1, 0), []);
 
   const targetQ = useRef(new THREE.Quaternion());
   const startQ = useRef(new THREE.Quaternion());
@@ -200,11 +251,29 @@ function DiceScene({
     startPos.current.set(offsetX, startY, offsetZ);
     targetPos.current.set(0, 0, 0);
 
-    // Align the winning face's normal toward the camera direction so it's readable.
-    const alignToCamera = new THREE.Quaternion().setFromUnitVectors(
+    // Align the winning face's normal straight up so the die rests flat
+    // with the rolled number on top, then yaw around Y so the number's
+    // upright direction faces the camera (readable, not rotated), and
+    // finally tilt the face toward the camera so it is clearly visible
+    // without the user having to look from directly above.
+    const alignUp = new THREE.Quaternion().setFromUnitVectors(
       faceNormal,
-      cameraDir
+      upDir
     );
+
+    // After alignUp, rotate around world Y so the number's up direction
+    // points toward +Z (toward the camera).
+    const upWorld = faces[index].up.clone().applyQuaternion(alignUp);
+    const yaw = Math.atan2(upWorld.x, upWorld.z);
+    const yawQ = new THREE.Quaternion().setFromAxisAngle(upDir, -yaw);
+
+    const aligned = yawQ.multiply(alignUp);
+
+    const tiltQ = new THREE.Quaternion().setFromAxisAngle(
+      new THREE.Vector3(1, 0, 0),
+      FACE_TILT_TOWARD_CAMERA
+    );
+    const presented = tiltQ.multiply(aligned);
 
     // Several full spins around a random axis so the die tumbles before settling.
     const spinAxis = new THREE.Vector3(
@@ -218,13 +287,13 @@ function DiceScene({
       spinCount * Math.PI * 2 * (Math.random() > 0.5 ? 1 : -1) + (Math.random() - 0.5) * Math.PI
     );
 
-    targetQ.current.copy(spin).multiply(alignToCamera);
+    targetQ.current.copy(spin).multiply(presented);
 
     setRolling(true);
     onRollingChange?.(true);
     rollStartTime.current = performance.now();
     rollDuration.current = 1500 + Math.random() * 400;
-  }, [rollSpec, rolling, faces, onRollingChange, cameraDir]);
+  }, [rollSpec, rolling, faces, onRollingChange, upDir]);
 
   useFrame(() => {
     if (!dieRef.current) return;
@@ -276,6 +345,7 @@ const D20 = forwardRef<D20Ref, { className?: string }>(function D20(
 ) {
   const [rollSpec, setRollSpec] = useState<RollSpec | null>(null);
   const [isRolling, setIsRolling] = useState(false);
+  const [settledValue, setSettledValue] = useState<number | null>(null);
   const keyRef = useRef(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -294,8 +364,17 @@ const D20 = forwardRef<D20Ref, { className?: string }>(function D20(
       audio.play().catch((err) => console.warn("D20 audio play failed:", err));
     }
     keyRef.current += 1;
+    setSettledValue(null);
     setRollSpec({ value: rollD20(), key: keyRef.current });
   }, [isRolling]);
+
+  const handleRollingChange = useCallback(
+    (rolling: boolean) => {
+      setIsRolling(rolling);
+      if (!rolling) setSettledValue(rollSpec?.value ?? null);
+    },
+    [rollSpec]
+  );
 
   useImperativeHandle(ref, () => ({ roll: triggerRoll }), [triggerRoll]);
 
@@ -310,15 +389,29 @@ const D20 = forwardRef<D20Ref, { className?: string }>(function D20(
       aria-label="Roll a D20"
     >
       <Canvas
-        camera={{ position: [0, 1.8, 3.0], fov: 40 }}
+        camera={{ position: [0, 1.9, 3.4], fov: 40 }}
         gl={{ antialias: true, alpha: true }}
         style={{ width: "100%", height: "100%", pointerEvents: "none" }}
       >
         <ambientLight intensity={1.0} />
         <directionalLight position={[3, 5, 4]} intensity={1.5} castShadow />
         <directionalLight position={[-3, -0.5, 2]} intensity={0.5} />
-        <DiceScene rollSpec={rollSpec} onRollingChange={setIsRolling} />
+        <DiceScene rollSpec={rollSpec} onRollingChange={handleRollingChange} />
       </Canvas>
+
+      {/* Floating result bubble so the rolled value is readable at a glance. */}
+      {settledValue !== null && (
+        <div
+          key={rollSpec?.key}
+          className="pointer-events-none absolute left-1/2 top-[6px] -translate-x-1/2 bg-[var(--flowty-paper)] border-[var(--flowty-ink)] border-[1.5px] border-solid rounded-[6px] px-[8px] py-[2px] font-['VT323:Regular',sans-serif] text-[22px] leading-none text-[var(--flowty-ink)]"
+          style={{
+            boxShadow: "2px 2px 0 var(--flowty-shadow-stamp)",
+            animation: "d20-pop-in 240ms ease-out",
+          }}
+        >
+          {settledValue}
+        </div>
+      )}
     </div>
   );
 });

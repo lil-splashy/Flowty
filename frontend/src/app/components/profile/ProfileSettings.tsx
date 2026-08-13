@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-
-type Theme = "light" | "dark" | "cozy";
+import { useTheme } from "@/app/context/ThemeContext";
+import { THEMES, type ThemeId } from "@/app/theme/themes";
 
 type ProfileSettingsData = {
   displayName: string;
   email: string;
-  theme: Theme;
   notificationsEnabled: boolean;
   soundEnabled: boolean;
   dailyHabitGoal: number;
@@ -16,7 +15,6 @@ const STORAGE_KEY = "flowty-profile-settings";
 const DEFAULT_SETTINGS: ProfileSettingsData = {
   displayName: "",
   email: "",
-  theme: "cozy",
   notificationsEnabled: true,
   soundEnabled: true,
   dailyHabitGoal: 3,
@@ -51,8 +49,8 @@ function CustomCheckbox({
       className="shrink-0 size-[14px] relative cursor-pointer"
     >
       <div
-        className={`absolute inset-0 rounded-[1.5px] border-[#1a1a2e] border-[1px] border-solid ${
-          checked ? "bg-[#c5f06a]" : "bg-transparent"
+        className={`absolute inset-0 rounded-[1.5px] border-[var(--flowty-ink)] border-[1px] border-solid ${
+          checked ? "bg-[var(--flowty-accent)]" : "bg-transparent"
         }`}
       />
       {checked && (
@@ -63,7 +61,7 @@ function CustomCheckbox({
         >
           <path
             d="M3 7L6 10L11 4"
-            stroke="#1a1a2e"
+            stroke="var(--flowty-ink)"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -75,12 +73,9 @@ function CustomCheckbox({
 }
 
 export default function ProfileSettings() {
+  const { theme, applyTheme } = useTheme();
   const [settings, setSettings] = useState<ProfileSettingsData>(loadSettings);
   const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = settings.theme;
-  }, [settings.theme]);
 
   useEffect(() => {
     if (!message) return;
@@ -131,21 +126,20 @@ export default function ProfileSettings() {
     const reset = { ...DEFAULT_SETTINGS };
     setSettings(reset);
     localStorage.removeItem(STORAGE_KEY);
-    document.documentElement.dataset.theme = reset.theme;
     setMessage("Settings reset to defaults.");
   }
 
   const inputClass =
-    "font-['Courier_Prime',sans-serif] text-[10px] text-[#3a2a10] bg-[rgba(255,255,255,0.5)] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[6px] py-[4px] outline-none w-full";
+    "font-['Courier_Prime',sans-serif] text-[10px] text-[var(--flowty-text)] bg-[var(--flowty-input-bg)] border-[var(--flowty-ink)] border-[1px] border-solid rounded-[2px] px-[6px] py-[4px] outline-none w-full";
   const labelClass =
-    "font-['Courier_Prime',sans-serif] leading-[12px] not-italic text-[#3a2a10] text-[10px] font-bold";
+    "font-['Courier_Prime',sans-serif] leading-[12px] not-italic text-[var(--flowty-text)] text-[10px] font-bold";
   const hintClass =
-    "font-['Courier_Prime',sans-serif] leading-[12px] not-italic text-[#8a6a40] text-[8px]";
+    "font-['Courier_Prime',sans-serif] leading-[12px] not-italic text-[var(--flowty-text-secondary)] text-[8px]";
 
   return (
-    <div className="bg-[#e7e1af] rounded-[inherit] overflow-hidden">
-      <div className="bg-[#4bbec8] border-b-[#1a1a2e] border-b-[1.5px] border-solid content-stretch flex h-[34px] items-center px-[10px] relative shrink-0 w-full">
-        <p className="font-['Permanent_Marker',sans-serif] leading-[13px] not-italic relative shrink-0 text-[#1a1a2e] text-[12px] whitespace-nowrap">
+    <div className="bg-[var(--flowty-paper)] rounded-[inherit] overflow-hidden">
+      <div className="bg-[var(--flowty-title-bg)] border-b-[var(--flowty-ink)] border-b-[1.5px] border-solid content-stretch flex h-[34px] items-center px-[10px] relative shrink-0 w-full">
+        <p className="font-['Permanent_Marker',sans-serif] leading-[13px] not-italic relative shrink-0 text-[var(--flowty-ink)] text-[12px] whitespace-nowrap">
           PROFILE & SETTINGS
         </p>
       </div>
@@ -183,16 +177,18 @@ export default function ProfileSettings() {
           <label className="flex flex-col gap-[3px]">
             <span className={labelClass}>Theme</span>
             <select
-              value={settings.theme}
+              value={theme}
               className={inputClass}
               onChange={(e) => {
-                setSettings({ ...settings, theme: e.target.value as Theme });
+                applyTheme(e.target.value as ThemeId);
                 clearMessage();
               }}
             >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-              <option value="cozy">Cozy</option>
+              {THEMES.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
             </select>
             <span className={hintClass}>Applied across the application.</span>
           </label>
@@ -214,8 +210,8 @@ export default function ProfileSettings() {
           </label>
         </div>
 
-        <div className="border-t border-[rgba(126,229,231,0.4)] border-solid pt-[8px] flex flex-col gap-[6px]">
-          <label className="flex items-center justify-between px-[8px] py-[6px] rounded-[2px] hover:bg-[rgba(0,0,0,0.03)] transition-colors cursor-pointer">
+        <div className="border-t border-[var(--flowty-accent-border)] border-solid pt-[8px] flex flex-col gap-[6px]">
+          <label className="flex items-center justify-between px-[8px] py-[6px] rounded-[2px] hover:bg-[var(--flowty-row-hover)] transition-colors cursor-pointer">
             <div className="flex flex-col gap-[1px]">
               <span className={labelClass}>Enable notifications</span>
               <span className={hintClass}>Receive reminders about habits and goals.</span>
@@ -229,7 +225,7 @@ export default function ProfileSettings() {
             />
           </label>
 
-          <label className="flex items-center justify-between px-[8px] py-[6px] rounded-[2px] hover:bg-[rgba(0,0,0,0.03)] transition-colors cursor-pointer">
+          <label className="flex items-center justify-between px-[8px] py-[6px] rounded-[2px] hover:bg-[var(--flowty-row-hover)] transition-colors cursor-pointer">
             <div className="flex flex-col gap-[1px]">
               <span className={labelClass}>Enable application sounds</span>
               <span className={hintClass}>Allow timer and completion sounds.</span>
@@ -248,7 +244,7 @@ export default function ProfileSettings() {
           <button
             type="button"
             onClick={saveSettings}
-            className="font-['Courier_Prime',sans-serif] text-[9px] text-[#1a1a2e] bg-[#c5f06a] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[8px] py-[2px] hover:opacity-80 transition-opacity"
+            className="font-['Courier_Prime',sans-serif] text-[9px] text-[var(--flowty-ink)] bg-[var(--flowty-accent)] border-[var(--flowty-ink)] border-[1px] border-solid rounded-[2px] px-[8px] py-[2px] hover:opacity-80 transition-opacity"
           >
             Save Settings
           </button>
@@ -256,13 +252,13 @@ export default function ProfileSettings() {
           <button
             type="button"
             onClick={resetSettings}
-            className="font-['Courier_Prime',sans-serif] text-[9px] text-[#1a1a2e] bg-[#e7e1af] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[8px] py-[2px] hover:bg-[#d5cf9e] transition-colors"
+            className="font-['Courier_Prime',sans-serif] text-[9px] text-[var(--flowty-ink)] bg-[var(--flowty-paper)] border-[var(--flowty-ink)] border-[1px] border-solid rounded-[2px] px-[8px] py-[2px] hover:bg-[var(--flowty-paper-hover)] transition-colors"
           >
             Reset
           </button>
 
           {message && (
-            <p className="font-['Courier_Prime',sans-serif] text-[9px] text-[#4bbec8] leading-[12px]">
+            <p className="font-['Courier_Prime',sans-serif] text-[9px] text-[var(--flowty-title-bg)] leading-[12px]">
               {message}
             </p>
           )}

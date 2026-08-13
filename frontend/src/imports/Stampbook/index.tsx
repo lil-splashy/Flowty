@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { motion } from "motion/react";
 import * as stampCardsApi from "@/app/api/stampCards";
 import type { StampCardResponse } from "@/app/api/stampCards";
 import type { RewardTransactionResponse } from "@/app/api/stampCards";
 import { useAuth } from "@/app/context/AuthContext";
+import { playPopSound } from "@/app/utils/sounds";
 import svgPaths from "@/imports/StampCard/svg-3vvmtd8stq";
 
 export default function Stampbook({ className }: { className?: string }) {
@@ -12,11 +14,34 @@ export default function Stampbook({ className }: { className?: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [redeeming, setRedeeming] = useState(false);
+  const [popSlots, setPopSlots] = useState<Set<number>>(new Set());
+  const prevFilledRef = useRef<Set<number> | null>(null);
+  const popTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const triggerPop = useCallback((slotNumbers: Set<number>) => {
+    if (popTimeoutRef.current) clearTimeout(popTimeoutRef.current);
+    setPopSlots(slotNumbers);
+    playPopSound();
+    popTimeoutRef.current = setTimeout(() => setPopSlots(new Set()), 700);
+  }, []);
+
+  const applyCard = useCallback((data: StampCardResponse) => {
+    const filledNow = new Set(
+      data.slots.filter((s) => s.filled).map((s) => s.slotNumber)
+    );
+    const prev = prevFilledRef.current;
+    prevFilledRef.current = filledNow;
+    if (prev !== null) {
+      const newlyFilled = new Set([...filledNow].filter((n) => !prev.has(n)));
+      if (newlyFilled.size > 0) triggerPop(newlyFilled);
+    }
+    setCard(data);
+  }, [triggerPop]);
 
   const fetchCard = useCallback(async () => {
     try {
       const data = await stampCardsApi.getActiveCard();
-      setCard(data);
+      applyCard(data);
       setError(null);
     } catch (err: any) {
       setCard(null);
@@ -43,6 +68,20 @@ export default function Stampbook({ className }: { className?: string }) {
     fetchCard();
     fetchTransactions();
   }, [fetchCard, fetchTransactions]);
+
+  // Live-update when a habit completion earns a stamp elsewhere on the page
+  useEffect(() => {
+    const onStampEarned = () => {
+      fetchCard();
+      fetchTransactions();
+    };
+    window.addEventListener("flowty:stamp-earned", onStampEarned);
+    return () => window.removeEventListener("flowty:stamp-earned", onStampEarned);
+  }, [fetchCard, fetchTransactions]);
+
+  useEffect(() => () => {
+    if (popTimeoutRef.current) clearTimeout(popTimeoutRef.current);
+  }, []);
 
   const handleRedeem = useCallback(async () => {
     if (!card || card.totalStamps < 10) return;
@@ -83,11 +122,18 @@ export default function Stampbook({ className }: { className?: string }) {
           </div>
         </div>
         <div className="flex-[1_0_0] h-[20.842px] min-w-px relative" data-name="Container (auto margin alignment)" />
-        <div className="relative shrink-0" data-name="Points badge">
+        <motion.div
+          className="relative shrink-0"
+          data-name="Points badge"
+          key={user?.totalPoints ?? 0}
+          initial={{ scale: 1.6 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+        >
           <p className="[word-break:break-word] font-['Share_Tech_Mono:Regular',sans-serif] leading-[11px] not-italic relative shrink-0 text-[var(--flowty-ink)] text-[9px] whitespace-nowrap">
             {user?.totalPoints ?? 0} pts
           </p>
-        </div>
+        </motion.div>
       </div>
 
       <div className="absolute content-stretch flex flex-col items-start left-0 p-[11.91px] top-[36.62px] w-full" data-name="Container">
@@ -124,7 +170,13 @@ export default function Stampbook({ className }: { className?: string }) {
                       width: "52.645px",
                     }}
                   >
-                    <div
+                    <motion.div
+                      animate={
+                        popSlots.has(slot.slotNumber)
+                          ? { scale: [0, 1.5, 1], rotate: [0, -10, 6, 0] }
+                          : { scale: 1, rotate: 0 }
+                      }
+                      transition={{ duration: 0.5, ease: "easeOut" }}
                       className={`drop-shadow-[1.191px_1.191px_0px_var(--flowty-ink)] relative rounded-[2.382px] shrink-0 size-[26.201px] ${
                         slot.filled ? "" : "bg-[var(--flowty-paper)]"
                       }`}
@@ -154,7 +206,7 @@ export default function Stampbook({ className }: { className?: string }) {
                         </>
                       )}
                       <div className="absolute inset-0 pointer-events-none rounded-[inherit] shadow-[inset_0px_0.595px_1.786px_0px_var(--flowty-shadow-slot)]" />
-                    </div>
+                    </motion.div>
                     <div className="h-[8.039px] opacity-70 relative shrink-0 w-[5.797px]">
                       <p className="[word-break:break-word] absolute font-['Share_Tech_Mono:Regular',sans-serif] leading-[8.039px] left-0 not-italic text-[var(--flowty-stamp-label)] text-[5.359px] top-[-0.6px] whitespace-nowrap">
                         {String(slot.slotNumber).padStart(2, "0")}
@@ -172,9 +224,10 @@ export default function Stampbook({ className }: { className?: string }) {
             <div className="h-[8.337px] relative rounded-[1.786px] shrink-0 w-full">
               <div aria-hidden className="absolute bg-[var(--flowty-paper)] inset-0 pointer-events-none rounded-[1.786px]" />
               <div className="content-stretch flex flex-col items-start overflow-clip p-[1.191px] relative rounded-[inherit] size-full">
-                <div
+                <motion.div
                   className="bg-gradient-to-r from-[var(--flowty-progress-from)] h-[5.955px] relative shrink-0 to-[var(--flowty-progress-to)]"
-                  style={{ width: `${Math.max(progressPercent, card && card.totalStamps > 0 ? 8 : 0)}%` }}
+                  animate={{ width: `${Math.max(progressPercent, card && card.totalStamps > 0 ? 8 : 0)}%` }}
+                  transition={{ type: "spring", stiffness: 170, damping: 20 }}
                 >
                   <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
                     <div className="absolute h-[8.932px] left-[70.86px] top-[-1.49px] w-[9.528px]">
@@ -183,7 +236,7 @@ export default function Stampbook({ className }: { className?: string }) {
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
               <div className="absolute inset-0 pointer-events-none rounded-[inherit] shadow-[inset_0px_0.595px_1.786px_0px_var(--flowty-shadow-progress)]" />
               <div aria-hidden className="absolute border-[var(--flowty-ink)] border-[1.191px] border-solid inset-0 pointer-events-none rounded-[1.786px]" />

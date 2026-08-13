@@ -78,6 +78,234 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+/* Smooth live transition when the active theme changes */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: ease-in-out;
+}
+
+/* ------------------------------------------------------------------ */
+/* Flowty app themes                                                    */
+/*                                                                     */
+/* Applied via `data-theme` on <html> (see src/app/theme/themes.ts).   */
+/* Widgets reference these `--flowty-*` custom properties.             */
+/* ------------------------------------------------------------------ */
+
+/* Cozy (default): warm paper / ink look */
+:root,
+[data-theme="cozy"] {
+  --flowty-paper: #e7e1af;
+  --flowty-ink: #1a1a2e;
+  --flowty-title-bg: #4bbec8;
+  --flowty-accent: #c5f06a;
+  --flowty-gold: #e8b93e;
+  --flowty-star: #f7d154;
+  --flowty-stamp-label: #3a2a10;
+  --flowty-text: #3a2a10;
+  --flowty-text-secondary: #8a6a40;
+  --flowty-disabled: #a89f7d;
+  --flowty-empty-slot: #b3a97f;
+  --flowty-error: #b3382c;
+  --flowty-progress-from: #4bbec8;
+  --flowty-progress-to: #2a8a94;
+  --flowty-shadow-stamp: rgba(0, 0, 0, 0.25);
+  --flowty-shadow-slot: rgba(0, 0, 0, 0.18);
+  --flowty-shadow-progress: rgba(0, 0, 0, 0.2);
+  --flowty-row-alt: rgba(26, 26, 46, 0.03);
+  --flowty-row-hover: rgba(26, 26, 46, 0.06);
+  --flowty-accent-border: rgba(75, 190, 200, 0.4);
+  --flowty-surface: #f5f3d7;
+  --flowty-paper-hover: #d5cf9e;
+  --flowty-input-bg: rgba(255, 255, 255, 0.5);
+  --flowty-title-hover: #3baab5;
+  --flowty-danger: #a33;
+  --flowty-timer-work: #C96565;
+  --flowty-timer-break: #65C98B;
+}
+
+[data-theme="light"] {
+  --flowty-paper: #fdfdf8;
+  --flowty-ink: #23233a;
+  --flowty-title-bg: #7ed3da;
+  --flowty-accent: #a3e635;
+  --flowty-gold: #eab308;
+  --flowty-star: #facc15;
+  --flowty-stamp-label: #44403c;
+  --flowty-text: #44403c;
+  --flowty-text-secondary: #78716c;
+  --flowty-disabled: #a8a29e;
+  --flowty-empty-slot: #d6d3d1;
+  --flowty-error: #dc2626;
+  --flowty-progress-from: #38bdf8;
+  --flowty-progress-to: #0284c7;
+  --flowty-shadow-stamp: rgba(0, 0, 0, 0.15);
+  --flowty-shadow-slot: rgba(0, 0, 0, 0.1);
+  --flowty-shadow-progress: rgba(0, 0, 0, 0.12);
+  --flowty-row-alt: rgba(35, 35, 58, 0.03);
+  --flowty-row-hover: rgba(35, 35, 58, 0.06);
+  --flowty-accent-border: rgba(126, 211, 218, 0.5);
+  --flowty-surface: #f4f4ec;
+  --flowty-paper-hover: #e7e7dc;
+  --flowty-input-bg: rgba(255, 255, 255, 0.7);
+  --flowty-title-hover: #5cb8c2;
+  --flowty-danger: #b91c1c;
+  --flowty-timer-work: #e11d48;
+  --flowty-timer-break: #10b981;
+}
+
+[data-theme="dark"] {
+  --flowty-paper: #26263a;
+  --flowty-ink: #e8e6da;
+  --flowty-title-bg: #2a8a94;
+  --flowty-accent: #84cc16;
+  --flowty-gold: #d4a017;
+  --flowty-star: #facc15;
+  --flowty-stamp-label: #d8d4c0;
+  --flowty-text: #d8d4c0;
+  --flowty-text-secondary: #9a967f;
+  --flowty-disabled: #5c5c70;
+  --flowty-empty-slot: #4a4a5e;
+  --flowty-error: #f87171;
+  --flowty-progress-from: #22d3ee;
+  --flowty-progress-to: #0e7490;
+  --flowty-shadow-stamp: rgba(0, 0, 0, 0.5);
+  --flowty-shadow-slot: rgba(0, 0, 0, 0.4);
+  --flowty-shadow-progress: rgba(0, 0, 0, 0.45);
+  --flowty-row-alt: rgba(232, 230, 218, 0.04);
+  --flowty-row-hover: rgba(232, 230, 218, 0.07);
+  --flowty-accent-border: rgba(42, 138, 148, 0.5);
+  --flowty-surface: #2f2f47;
+  --flowty-paper-hover: #3a3a55;
+  --flowty-input-bg: rgba(255, 255, 255, 0.08);
+  --flowty-title-hover: #1f6b73;
+  --flowty-danger: #f87171;
+  --flowty-timer-work: #f87171;
+  --flowty-timer-break: #34d399;
+}
+
+[data-theme="blueprint"] {
+  --flowty-paper: #dce9f5;
+  --flowty-ink: #12283f;
+  --flowty-title-bg: #3d7ab5;
+  --flowty-accent: #7fd4c1;
+  --flowty-gold: #d9a441;
+  --flowty-star: #f2c14e;
+  --flowty-stamp-label: #1f3a56;
+  --flowty-text: #1f3a56;
+  --flowty-text-secondary: #5b7a99;
+  --flowty-disabled: #93a8bd;
+  --flowty-empty-slot: #a9c0d6;
+  --flowty-error: #c0392b;
+  --flowty-progress-from: #3d7ab5;
+  --flowty-progress-to: #1f4e79;
+  --flowty-shadow-stamp: rgba(10, 30, 55, 0.3);
+  --flowty-shadow-slot: rgba(10, 30, 55, 0.2);
+  --flowty-shadow-progress: rgba(10, 30, 55, 0.25);
+  --flowty-row-alt: rgba(18, 40, 63, 0.03);
+  --flowty-row-hover: rgba(18, 40, 63, 0.06);
+  --flowty-accent-border: rgba(61, 122, 181, 0.4);
+  --flowty-surface: #cfe0f0;
+  --flowty-paper-hover: #bcd2e8;
+  --flowty-input-bg: rgba(255, 255, 255, 0.55);
+  --flowty-title-hover: #2f6694;
+  --flowty-danger: #a93226;
+  --flowty-timer-work: #e11d48;
+  --flowty-timer-break: #10b981;
+}
+
+[data-theme="night"] {
+  --flowty-paper: #1c1b33;
+  --flowty-ink: #e6e4f5;
+  --flowty-title-bg: #4a3f8f;
+  --flowty-accent: #8b7ff0;
+  --flowty-gold: #d9b441;
+  --flowty-star: #ffd966;
+  --flowty-stamp-label: #c9c4e8;
+  --flowty-text: #c9c4e8;
+  --flowty-text-secondary: #8a84b8;
+  --flowty-disabled: #565172;
+  --flowty-empty-slot: #3d3a5c;
+  --flowty-error: #f08080;
+  --flowty-progress-from: #8b7ff0;
+  --flowty-progress-to: #4a3f8f;
+  --flowty-shadow-stamp: rgba(0, 0, 0, 0.55);
+  --flowty-shadow-slot: rgba(0, 0, 0, 0.45);
+  --flowty-shadow-progress: rgba(0, 0, 0, 0.5);
+  --flowty-row-alt: rgba(230, 228, 245, 0.04);
+  --flowty-row-hover: rgba(230, 228, 245, 0.07);
+  --flowty-accent-border: rgba(74, 63, 143, 0.5);
+  --flowty-surface: #262545;
+  --flowty-paper-hover: #322f56;
+  --flowty-input-bg: rgba(255, 255, 255, 0.08);
+  --flowty-title-hover: #3b3276;
+  --flowty-danger: #f08080;
+  --flowty-timer-work: #f08080;
+  --flowty-timer-break: #6ee7b7;
+}
+
+[data-theme="forest"] {
+  --flowty-paper: #e4ecd4;
+  --flowty-ink: #1e2b1a;
+  --flowty-title-bg: #5d8a4a;
+  --flowty-accent: #a3c96b;
+  --flowty-gold: #c9a227;
+  --flowty-star: #e3c04b;
+  --flowty-stamp-label: #2e4023;
+  --flowty-text: #2e4023;
+  --flowty-text-secondary: #6b7f5a;
+  --flowty-disabled: #9aa88c;
+  --flowty-empty-slot: #b3c19e;
+  --flowty-error: #b3382c;
+  --flowty-progress-from: #5d8a4a;
+  --flowty-progress-to: #33511f;
+  --flowty-shadow-stamp: rgba(15, 30, 10, 0.3);
+  --flowty-shadow-slot: rgba(15, 30, 10, 0.2);
+  --flowty-shadow-progress: rgba(15, 30, 10, 0.25);
+  --flowty-row-alt: rgba(30, 43, 26, 0.03);
+  --flowty-row-hover: rgba(30, 43, 26, 0.06);
+  --flowty-accent-border: rgba(93, 138, 74, 0.4);
+  --flowty-surface: #d8e3c4;
+  --flowty-paper-hover: #c6d4ad;
+  --flowty-input-bg: rgba(255, 255, 255, 0.5);
+  --flowty-title-hover: #4a7039;
+  --flowty-danger: #a93226;
+  --flowty-timer-work: #dc2626;
+  --flowty-timer-break: #65a30d;
+}
+
+[data-theme="sunset"] {
+  --flowty-paper: #f7e3cd;
+  --flowty-ink: #3a1f2b;
+  --flowty-title-bg: #e2703a;
+  --flowty-accent: #f2a65a;
+  --flowty-gold: #d98e2b;
+  --flowty-star: #f2b84b;
+  --flowty-stamp-label: #5a2e35;
+  --flowty-text: #5a2e35;
+  --flowty-text-secondary: #a06a60;
+  --flowty-disabled: #c4a08e;
+  --flowty-empty-slot: #d9b8a0;
+  --flowty-error: #c0392b;
+  --flowty-progress-from: #e2703a;
+  --flowty-progress-to: #a63d40;
+  --flowty-shadow-stamp: rgba(60, 20, 20, 0.3);
+  --flowty-shadow-slot: rgba(60, 20, 20, 0.2);
+  --flowty-shadow-progress: rgba(60, 20, 20, 0.25);
+  --flowty-row-alt: rgba(58, 31, 43, 0.03);
+  --flowty-row-hover: rgba(58, 31, 43, 0.06);
+  --flowty-accent-border: rgba(226, 112, 58, 0.4);
+  --flowty-surface: #f2d5b8;
+  --flowty-paper-hover: #e8c29e;
+  --flowty-input-bg: rgba(255, 255, 255, 0.5);
+  --flowty-title-hover: #c85a28;
+  --flowty-danger: #a93226;
+  --flowty-timer-work: #dc2626;
+  --flowty-timer-break: #16a34a;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -177,5 +405,21 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+  }
+}
+
+/* D20 result bubble entrance */
+@keyframes d20-pop-in {
+  0% {
+    transform: translateX(-50%) scale(0.4);
+    opacity: 0;
+  }
+  70% {
+    transform: translateX(-50%) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
   }
 }

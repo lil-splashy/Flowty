@@ -1,5 +1,5 @@
-/Users/ben/coding/Project-Cozy/backend/src/test/java/com/flowty/PomodoroApplicationTests.java
-/Users/ben/coding/Project-Cozy/backend/src/test/java/com/flowty/controller/AuthControllerTest.java
-/Users/ben/coding/Project-Cozy/backend/src/test/java/com/flowty/repository/ChoreRepositoryTest.java
-/Users/ben/coding/Project-Cozy/backend/src/test/java/com/flowty/service/AuthServiceTest.java
-/Users/ben/coding/Project-Cozy/backend/src/test/java/com/flowty/service/ChoreServiceTest.java
+/Users/ben/coding/Flowty/backend/src/test/java/com/flowty/PomodoroApplicationTests.java
+/Users/ben/coding/Flowty/backend/src/test/java/com/flowty/controller/AuthControllerTest.java
+/Users/ben/coding/Flowty/backend/src/test/java/com/flowty/repository/ChoreRepositoryTest.java
+/Users/ben/coding/Flowty/backend/src/test/java/com/flowty/service/AuthServiceTest.java
+/Users/ben/coding/Flowty/backend/src/test/java/com/flowty/service/ChoreServiceTest.java
