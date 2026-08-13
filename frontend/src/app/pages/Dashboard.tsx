@@ -1,12 +1,11 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import blueprintBg from "@/imports/blueprint-background.png";
 import flowtyLogo from "@/imports/FlowtyLogo.png";
 import ChoreTable from "@/imports/ChoreTable/index";
-import D20, { type D20Ref } from "@/imports/D20/index";
+import D20 from "@/imports/D20/index";
 import PomodoroTimer from "@/app/components/PomodoroTimer";
 import Stampbook from "@/imports/Stampbook/index";
-import StampCard1 from "@/imports/StampCard-1/index";
 import ToDoList from "@/imports/ToDoList/index";
 import HabitList from "@/imports/HabitList/index";
 import { useAuth } from "@/app/context/AuthContext";
@@ -27,7 +26,6 @@ const WIDGET_DEFAULTS: Record<string, { x: number; y: number; zIndex: number }> 
   todo: { x: 87, y: 283, zIndex: 11 },
   habits: { x: 340, y: 283, zIndex: 16 },
   stampCard: { x: 732, y: 42, zIndex: 12 },
-  stampCard1: { x: 718, y: 67, zIndex: 13 },
   chores: { x: 1098, y: 90, zIndex: 14 },
   d20: { x: 1257, y: 453, zIndex: 15 },
   whiteNoise: { x: 1030, y: 380, zIndex: 16 },
@@ -52,26 +50,9 @@ function DragItem({
   onDragEnd: (placement: Placement) => void;
   className?: string;
 }) {
-  const [dragEnabled, setDragEnabled] = useState(false);
-  const hoverTimerRef = useRef<number | null>(null);
-
-  const handlePointerEnter = useCallback(() => {
-    hoverTimerRef.current = window.setTimeout(() => {
-      setDragEnabled(true);
-    }, 500);
-  }, []);
-
-  const handlePointerLeave = useCallback(() => {
-    if (hoverTimerRef.current !== null) {
-      window.clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-    setDragEnabled(false);
-  }, []);
-
   return (
     <motion.div
-      drag={dragEnabled}
+      drag
       dragMomentum={false}
       dragElastic={0}
       animate={{ x: placement.x, y: placement.y }}
@@ -99,52 +80,10 @@ function DragItem({
   );
 }
 
-function D20Widget() {
-  const d20Ref = useRef<D20Ref>(null);
-  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
-
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    pointerStartRef.current = { x: e.clientX, y: e.clientY };
-  }, []);
-
-  const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    const start = pointerStartRef.current;
-    pointerStartRef.current = null;
-    if (!start) return;
-
-    const dx = e.clientX - start.x;
-    const dy = e.clientY - start.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    
-    if (distance < 5) {
-      d20Ref.current?.roll();
-    }
-  }, []);
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label="Roll a D20"
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          d20Ref.current?.roll();
-        }
-      }}
-      className="cursor-pointer focus:outline-none select-none touch-manipulation"
-    >
-      <D20 ref={d20Ref} />
-    </div>
-  );
-}
-
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [profileOpen, setProfileOpen] = useState(false);
   const [isStoreOpen, setIsStoreOpen] = useState(false);
 
   const [placements, setPlacements] = useState<Record<string, Placement>>(() =>
@@ -173,7 +112,7 @@ export default function Dashboard() {
         });
       })
       .catch(() => {
-        
+
       });
 
     return () => {
@@ -188,7 +127,7 @@ export default function Dashboard() {
 
     saveTimeoutRef.current = window.setTimeout(() => {
       authApi.updateWidgetPlacements(Object.values(nextPlacements)).catch(() => {
-        
+
       });
     }, 500);
   }
@@ -216,12 +155,23 @@ export default function Dashboard() {
         backgroundPosition: "center",
       }}
     >
+      <div className="absolute top-3 left-4 z-50">
+        <img src={flowtyLogo} alt="Flowty" className="h-14 w-auto" />
+      </div>
+
       <div className="absolute top-3 right-4 z-50 flex items-center gap-4">
-        <div className="bg-[#e7e1af] rounded px-3 py-1 border border-[#1a1a2e]">
-          <span className="text-[#1a1a2e] text-sm font-['Courier_Prime']">
-            {user?.username}
-          </span>
-        </div>
+        <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+          <DialogTrigger asChild>
+            <button className="bg-[#e7e1af] rounded px-3 py-1 border border-[#1a1a2e] cursor-pointer hover:brightness-95">
+              <span className="text-[#1a1a2e] text-sm font-['Courier_Prime']">
+                {user?.username}
+              </span>
+            </button>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-auto p-0">
+            <ProfileSettings />
+          </DialogContent>
+        </Dialog>
 
         <button
           onClick={() => setIsStoreOpen(true)}
@@ -237,26 +187,6 @@ export default function Dashboard() {
           Logout
         </button>
       </div>
-      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
-        <div className="absolute top-3 right-4 z-50 flex items-center gap-4">
-          <DialogTrigger asChild>
-            <button className="bg-[#e7e1af] rounded px-3 py-1 border border-[#1a1a2e] cursor-pointer hover:brightness-95">
-              <span className="text-[#1a1a2e] text-sm font-['Courier_Prime']">
-                {user?.username}
-              </span>
-            </button>
-          </DialogTrigger>
-          <button
-            onClick={handleLogout}
-            className="rounded px-3 py-1 bg-[#1a1a2e] text-[#e7e1af] text-sm font-['Special_Elite'] hover:bg-[#2a2a4e] transition-colors border border-[#1a1a2e]"
-          >
-            Logout
-          </button>
-        </div>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-auto p-0">
-          <ProfileSettings />
-        </DialogContent>
-      </Dialog>
 
       {isStoreOpen && (
         <div
@@ -311,7 +241,7 @@ export default function Dashboard() {
           <HabitList />
         </DragItem>
 
-<DragItem placement={placements.stampCard} onDragEnd={handleDragEnd}>
+        <DragItem placement={placements.stampCard} onDragEnd={handleDragEnd}>
           <div className="flex items-center justify-center">
             <Stampbook />
           </div>
@@ -326,8 +256,6 @@ export default function Dashboard() {
         </DragItem>
 
         <DragItem placement={placements.whiteNoise} onDragEnd={handleDragEnd}>
-          <WhiteNoisePlayer />
-<DragItem placement={placements.whiteNoise} onDragEnd={handleDragEnd}>
           <WhiteNoisePlayer />
         </DragItem>
 
