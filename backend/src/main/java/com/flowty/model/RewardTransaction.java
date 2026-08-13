@@ -49,6 +49,7 @@ public class RewardTransaction {
 
     public enum TransactionType {
         STAMP_EARNED,
-        CARD_REDEEMED
+        CARD_REDEEMED,
+        PURCHASE
     }
 }
