@@ -1,5 +1,5 @@
 import { useRef, useState, useMemo, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -7,13 +7,11 @@ export interface D20Ref {
   roll: () => void;
 }
 
-const FACES = Array.from({ length: 20 }, (_, i) => i + 1);
-
 function rollD20(): number {
   return Math.floor(Math.random() * 20) + 1;
 }
 
-function createFaceLabelTexture(number: number): THREE.CanvasTexture {
+function createFaceTexture(number: number): THREE.CanvasTexture {
   const size = 128;
   const canvas = document.createElement("canvas");
   canvas.width = size;
@@ -23,29 +21,59 @@ function createFaceLabelTexture(number: number): THREE.CanvasTexture {
   ctx.fillStyle = "#E7E1AF";
   ctx.fillRect(0, 0, size, size);
 
-  ctx.strokeStyle = "#1a1a2e";
-  ctx.lineWidth = 8;
-  ctx.strokeRect(4, 4, size - 8, size - 8);
+  const m = 8;
+  ctx.beginPath();
+  ctx.moveTo(size / 2, size - m);
+  ctx.lineTo(size - m, m);
+  ctx.lineTo(m, m);
+  ctx.closePath();
+  ctx.fillStyle = "#E1DBAA";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(26, 26, 46, 0.22)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
 
-  ctx.fillStyle = "#1a1a2e";
-  ctx.font = "bold 64px Courier Prime, monospace";
+  const cx = size / 2;
+  const cy = (size - m + m + m) / 3 + 3;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(String(number), size / 2, size / 2 + 4);
+  ctx.font = "bold 52px 'Courier Prime', 'Courier New', monospace";
+
+  ctx.fillStyle = "rgba(0, 0, 0, 0.16)";
+  ctx.fillText(String(number), cx + 1.5, cy + 2);
+
+  ctx.fillStyle = "#1a1a2e";
+  ctx.fillText(String(number), cx, cy);
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
   return tex;
+}
+
+function createTriangleGeometry(a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3): THREE.BufferGeometry {
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(new Float32Array([a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z]), 3)
+  );
+  geometry.setAttribute(
+    "uv",
+    new THREE.BufferAttribute(new Float32Array([0.5, 0, 1, 1, 0, 1]), 2)
+  );
+  geometry.setIndex([0, 1, 2]);
+  geometry.computeVertexNormals();
+  return geometry;
 }
 
 interface FaceData {
   normal: THREE.Vector3;
-  centroid: THREE.Vector3;
 }
 
-function buildIcosahedronData() {
-  const geometry = new THREE.IcosahedronGeometry(1, 0);
-  const pos = geometry.attributes.position;
+function buildDieFaces(): { meshes: THREE.Mesh[]; faces: FaceData[] } {
+  const source = new THREE.IcosahedronGeometry(1, 0);
+  const pos = source.attributes.position;
+  const meshes: THREE.Mesh[] = [];
   const faces: FaceData[] = [];
 
   for (let i = 0; i < pos.count; i += 3) {
@@ -56,40 +84,22 @@ function buildIcosahedronData() {
     const normal = new THREE.Vector3()
       .crossVectors(new THREE.Vector3().subVectors(b, a), new THREE.Vector3().subVectors(c, a))
       .normalize();
-    const centroid = new THREE.Vector3().addVectors(a, b).add(c).divideScalar(3);
+    faces.push({ normal });
 
-    faces.push({ normal, centroid });
+    const number = i / 3 + 1;
+    const material = new THREE.MeshStandardMaterial({
+      map: createFaceTexture(number),
+      roughness: 0.42,
+      metalness: 0.05,
+      flatShading: true,
+    });
+    const mesh = new THREE.Mesh(createTriangleGeometry(a, b, c), material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    meshes.push(mesh);
   }
 
-  return { geometry, faces };
-}
-
-function FaceLabels({ faces }: { faces: FaceData[] }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const { camera } = useThree();
-
-  useFrame(() => {
-    if (!groupRef.current) return;
-    groupRef.current.children.forEach((sprite) => {
-      sprite.lookAt(camera.position);
-    });
-  });
-
-  const textures = useMemo(() => FACES.map((n) => createFaceLabelTexture(n)), []);
-
-  return (
-    <group ref={groupRef}>
-      {faces.map((face, i) => (
-        <sprite
-          key={i}
-          position={face.centroid.clone().add(face.normal.clone().multiplyScalar(0.06))}
-          scale={[0.42, 0.42, 0.42]}
-        >
-          <spriteMaterial map={textures[i]} transparent depthTest={false} />
-        </sprite>
-      ))}
-    </group>
-  );
+  return { meshes, faces };
 }
 
 interface RollSpec {
@@ -106,29 +116,18 @@ function DiceScene({
   onRollingChange?: (rolling: boolean) => void;
   onResult?: (value: number) => void;
 }) {
-  const dieRef = useRef<THREE.Mesh>(null);
-  const { geometry, faces } = useMemo(buildIcosahedronData, []);
+  const dieRef = useRef<THREE.Group>(null);
+  const { meshes, faces } = useMemo(buildDieFaces, []);
   const [rolling, setRolling] = useState(false);
   const lastRollKey = useRef<number | null>(null);
 
   const targetQ = useRef(new THREE.Quaternion());
   const startQ = useRef(new THREE.Quaternion());
+  const startPos = useRef(new THREE.Vector3());
+  const targetPos = useRef(new THREE.Vector3());
   const rollStartTime = useRef(0);
   const rollDuration = useRef(0);
   const pendingResult = useRef<number | null>(null);
-
-  const material = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#E7E1AF",
-        roughness: 0.45,
-        metalness: 0.15,
-        flatShading: true,
-      }),
-    []
-  );
-
-  const edgesGeometry = useMemo(() => new THREE.EdgesGeometry(geometry), [geometry]);
 
   useEffect(() => {
     if (!rollSpec || !dieRef.current) return;
@@ -142,15 +141,21 @@ function DiceScene({
 
     startQ.current.copy(dieRef.current.quaternion);
 
-    const alignToCamera = new THREE.Quaternion().setFromUnitVectors(faceNormal, new THREE.Vector3(0, 0, 1));
+    const offsetX = (Math.random() - 0.5) * 0.5;
+    const offsetZ = (Math.random() - 0.5) * 0.4;
+    dieRef.current.position.set(offsetX, 0, offsetZ);
+    startPos.current.set(offsetX, 0, offsetZ);
+    targetPos.current.set(0, 0, 0);
+
+    const alignUp = new THREE.Quaternion().setFromUnitVectors(faceNormal, new THREE.Vector3(0, 1, 0));
     const randomSpins = new THREE.Euler(
       (Math.floor(Math.random() * 3) + 3) * Math.PI * (Math.random() > 0.5 ? 1 : -1),
       (Math.floor(Math.random() * 3) + 3) * Math.PI * (Math.random() > 0.5 ? 1 : -1),
-      (Math.floor(Math.random() * 2) + 2) * Math.PI * (Math.random() > 0.5 ? 1 : -1)
+      0
     );
     const spinQ = new THREE.Quaternion().setFromEuler(randomSpins);
 
-    targetQ.current.copy(alignToCamera).multiply(spinQ);
+    targetQ.current.copy(alignUp).multiply(spinQ);
 
     pendingResult.current = value;
     setRolling(true);
@@ -163,7 +168,8 @@ function DiceScene({
     if (!dieRef.current) return;
 
     if (!rolling) {
-      dieRef.current.rotation.z += 0.002;
+      const idleSpin = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.003);
+      dieRef.current.quaternion.premultiply(idleSpin);
       return;
     }
 
@@ -172,9 +178,11 @@ function DiceScene({
     const eased = 1 - Math.pow(1 - t, 4);
 
     dieRef.current.quaternion.copy(startQ.current).slerp(targetQ.current, eased);
+    dieRef.current.position.lerpVectors(startPos.current, targetPos.current, eased);
 
     if (t >= 1) {
       dieRef.current.quaternion.copy(targetQ.current);
+      dieRef.current.position.copy(targetPos.current);
       setRolling(false);
       onRollingChange?.(false);
       if (pendingResult.current !== null) {
@@ -185,14 +193,17 @@ function DiceScene({
   });
 
   return (
-    <group rotation={[0.3, 0.4, 0]}>
-      <mesh ref={dieRef} material={material} geometry={geometry} castShadow receiveShadow>
-        <lineSegments geometry={edgesGeometry}>
-          <lineBasicMaterial color="#1a1a2e" linewidth={2} />
-        </lineSegments>
-        <FaceLabels faces={faces} />
+    <>
+      <mesh position={[0, -1.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.72, 32]} />
+        <meshBasicMaterial color="#000" transparent opacity={0.25} />
       </mesh>
-    </group>
+      <group ref={dieRef}>
+        {meshes.map((mesh, i) => (
+          <primitive key={i} object={mesh} />
+        ))}
+      </group>
+    </>
   );
 }
 
@@ -225,13 +236,13 @@ const D20 = forwardRef<D20Ref, { className?: string }>(function D20(
       aria-label="Roll a D20"
     >
       <Canvas
-        camera={{ position: [0, 0, 3.2], fov: 35 }}
+        camera={{ position: [0, 1.8, 3.0], fov: 40 }}
         gl={{ antialias: true, alpha: true }}
         style={{ width: "100%", height: "100%", pointerEvents: "none" }}
       >
-        <ambientLight intensity={1.2} />
-        <directionalLight position={[4, 6, 5]} intensity={1.5} castShadow />
-        <directionalLight position={[-4, -2, 3]} intensity={0.6} />
+        <ambientLight intensity={1.0} />
+        <directionalLight position={[3, 5, 4]} intensity={1.5} castShadow />
+        <directionalLight position={[-3, -0.5, 2]} intensity={0.5} />
         <DiceScene
           rollSpec={rollSpec}
           onRollingChange={setIsRolling}
