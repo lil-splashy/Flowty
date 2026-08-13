@@ -5,8 +5,8 @@ import type { ChoreResponse } from "@/app/api/chores";
 export default function ToDoList({ className }: { className?: string }) {
   const [chores, setChores] = useState<ChoreResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [rollResult, setRollResult] = useState<number | null>(null);
-  const [rolling, setRolling] = useState(false);
+  const [newItem, setNewItem] = useState("");
+  const [adding, setAdding] = useState(false);
 
   const fetchChores = useCallback(async () => {
     try {
@@ -33,20 +33,27 @@ export default function ToDoList({ className }: { className?: string }) {
     []
   );
 
-  const handleRoll = useCallback(() => {
-    if (rolling) return;
-    setRolling(true);
-    let count = 0;
-    const maxTicks = 10 + Math.floor(Math.random() * 10);
-    const interval = setInterval(() => {
-      setRollResult(Math.floor(Math.random() * 20) + 1);
-      count++;
-      if (count >= maxTicks) {
-        clearInterval(interval);
-        setRolling(false);
+  const handleAdd = useCallback(async () => {
+    const trimmed = newItem.trim();
+    if (!trimmed || adding) return;
+    setAdding(true);
+    try {
+      const created = await choresApi.createChore({ description: trimmed });
+      setChores((prev) => [...prev, created]);
+      setNewItem("");
+    } catch {} finally {
+      setAdding(false);
+    }
+  }, [newItem, adding]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        handleAdd();
       }
-    }, 80);
-  }, [rolling]);
+    },
+    [handleAdd]
+  );
 
   const defaultClasses =
     "bg-[#e7e1af] border-[#1a1a2e] border-[1.5px] border-solid drop-shadow-[5px_3px_2px_rgba(0,0,0,0.6)] h-[355px] overflow-hidden relative rounded-[2px] shadow-[5px_3px_4px_0px_rgba(0,0,0,0.61)] w-[234px]";
@@ -58,18 +65,23 @@ export default function ToDoList({ className }: { className?: string }) {
           <p className="font-['Permanent_Marker',sans-serif] leading-[13px] not-italic relative shrink-0 text-[#1a1a2e] text-[12px] whitespace-nowrap">
             To-Do LIST
           </p>
-          <div className="flex-[1_0_0] h-[20px] min-w-px relative" />
+        </div>
+
+        <div className="border-b-[#1a1a2e] border-b-[1px] border-solid content-stretch flex gap-[4px] items-center px-[8px] py-[4px] shrink-0 w-full">
+          <input
+            type="text"
+            value={newItem}
+            onChange={(e) => setNewItem(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Add item..."
+            className="bg-[#f5f3d7] border-[#1a1a2e] border-[1px] border-solid flex-1 font-['Courier_Prime',sans-serif] leading-[12px] min-w-0 outline-none px-[4px] py-[2px] rounded-[2px] text-[#3a2a10] text-[9px]"
+          />
           <button
-            onClick={handleRoll}
-            disabled={rolling}
-            className="font-['Courier_Prime',sans-serif] leading-[10px] not-italic relative shrink-0 text-[#1a1a2e] text-[9px] bg-[#e7e1af] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[6px] py-[2px] hover:bg-[#d5cf9e] transition-colors"
-            title="Roll D20"
+            onClick={handleAdd}
+            disabled={adding || !newItem.trim()}
+            className="bg-[#4bbec8] border-[#1a1a2e] border-[1px] border-solid font-['Courier_Prime',sans-serif] leading-[10px] not-italic px-[6px] py-[2px] rounded-[2px] shrink-0 text-[#1a1a2e] text-[9px] hover:bg-[#3baab5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {rolling ? (
-              <span className="inline-block animate-pulse">{rollResult ?? "🎲"}</span>
-            ) : (
-              "🎲 Roll"
-            )}
+            +
           </button>
         </div>
 
@@ -86,7 +98,7 @@ export default function ToDoList({ className }: { className?: string }) {
           ) : chores.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <p className="font-['Courier_Prime',sans-serif] leading-[14px] not-italic text-[#8a6a40] text-[10px]">
-                No chores yet
+                No items yet
               </p>
             </div>
           ) : (
@@ -117,11 +129,6 @@ export default function ToDoList({ className }: { className?: string }) {
                         className={`font-['Courier_Prime',sans-serif] leading-[12px] not-italic text-[#3a2a10] text-[9px] truncate ${chore.completed ? "line-through opacity-50" : ""}`}
                       >
                         {chore.description}
-                      </p>
-                    </span>
-                    <span className="shrink-0">
-                      <p className="font-['Courier_Prime',sans-serif] leading-[12px] not-italic text-[#8a6a40] text-[7px] text-right whitespace-nowrap">
-                        #{chore.rollNumber}
                       </p>
                     </span>
                   </button>

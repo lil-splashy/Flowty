@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "motion/react";
 import blueprintBg from "@/imports/blueprint-background.png";
+import flowtyLogo from "@/imports/FlowtyLogo.png";
 import ChoreTable from "@/imports/ChoreTable/index";
 import D20, { type D20Ref } from "@/imports/D20/index";
 import PomodoroTimer from "@/app/components/PomodoroTimer";
-import StampCard from "@/imports/StampCard/index";
+import Stampbook from "@/imports/Stampbook/index";
 import StampCard1 from "@/imports/StampCard-1/index";
 import ToDoList from "@/imports/ToDoList/index";
 import HabitList from "@/imports/HabitList/index";
@@ -13,6 +14,13 @@ import { useNavigate } from "react-router";
 import WhiteNoisePlayer from "@/app/components/whitenoise/WhiteNoisePlayer";
 import CustomizationStore from "@/app/components/customization/CustomizationStore";
 import * as authApi from "@/app/api/auth";
+import Journal from "@/app/components/journal/Journal";
+import ProfileSettings from "@/app/components/profile/ProfileSettings";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/app/components/ui/dialog";
 
 const WIDGET_DEFAULTS: Record<string, { x: number; y: number; zIndex: number }> = {
   pomodoro: { x: 23, y: -58, zIndex: 10 },
@@ -23,6 +31,7 @@ const WIDGET_DEFAULTS: Record<string, { x: number; y: number; zIndex: number }> 
   chores: { x: 1098, y: 90, zIndex: 14 },
   d20: { x: 1257, y: 453, zIndex: 15 },
   whiteNoise: { x: 1030, y: 380, zIndex: 16 },
+  journal: { x: 340, y: -200, zIndex: 17 },
 };
 
 type Placement = {
@@ -228,6 +237,26 @@ export default function Dashboard() {
           Logout
         </button>
       </div>
+      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+        <div className="absolute top-3 right-4 z-50 flex items-center gap-4">
+          <DialogTrigger asChild>
+            <button className="bg-[#e7e1af] rounded px-3 py-1 border border-[#1a1a2e] cursor-pointer hover:brightness-95">
+              <span className="text-[#1a1a2e] text-sm font-['Courier_Prime']">
+                {user?.username}
+              </span>
+            </button>
+          </DialogTrigger>
+          <button
+            onClick={handleLogout}
+            className="rounded px-3 py-1 bg-[#1a1a2e] text-[#e7e1af] text-sm font-['Special_Elite'] hover:bg-[#2a2a4e] transition-colors border border-[#1a1a2e]"
+          >
+            Logout
+          </button>
+        </div>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-auto p-0">
+          <ProfileSettings />
+        </DialogContent>
+      </Dialog>
 
       {isStoreOpen && (
         <div
@@ -282,16 +311,10 @@ export default function Dashboard() {
           <HabitList />
         </DragItem>
 
-        <DragItem placement={placements.stampCard} onDragEnd={handleDragEnd}>
-          <div className="flex h-[276.482px] w-[343.487px] items-center justify-center">
-            <div className="flex-none rotate-[13.44deg] h-full w-full">
-              <StampCard />
-            </div>
+<DragItem placement={placements.stampCard} onDragEnd={handleDragEnd}>
+          <div className="flex items-center justify-center">
+            <Stampbook />
           </div>
-        </DragItem>
-
-        <DragItem placement={placements.stampCard1} onDragEnd={handleDragEnd}>
-          <StampCard1 />
         </DragItem>
 
         <DragItem placement={placements.chores} onDragEnd={handleDragEnd}>
@@ -304,6 +327,12 @@ export default function Dashboard() {
 
         <DragItem placement={placements.whiteNoise} onDragEnd={handleDragEnd}>
           <WhiteNoisePlayer />
+<DragItem placement={placements.whiteNoise} onDragEnd={handleDragEnd}>
+          <WhiteNoisePlayer />
+        </DragItem>
+
+        <DragItem placement={placements.journal} onDragEnd={handleDragEnd}>
+          <Journal />
         </DragItem>
       </div>
     </div>

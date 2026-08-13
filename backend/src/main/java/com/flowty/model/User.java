@@ -34,9 +34,13 @@ public class User {
     @Builder.Default
     private Instant createdAt = Instant.now();
 
-    @Lob
+@Lob
     @Column(name = "widget_placements")
     @JdbcTypeCode(SqlTypes.JSON)
     @Builder.Default
     private List<WidgetPlacement> widgetPlacements = new ArrayList<>();
+
+    @Column(name = "total_points", nullable = false)
+    @Builder.Default
+    private int totalPoints = 0;
 }

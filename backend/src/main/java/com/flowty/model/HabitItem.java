@@ -1,6 +1,7 @@
 package com.flowty.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @DiscriminatorValue("HABIT")
@@ -15,6 +16,9 @@ public class HabitItem extends ToDoListItem {
 
     @Column(name = "active")
     private Boolean active = true;
+
+    @Column(name = "last_completed_date")
+    private LocalDate lastCompletedDate;
 
     public String getFrequency() {
         return frequency;
@@ -46,5 +50,13 @@ public class HabitItem extends ToDoListItem {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public LocalDate getLastCompletedDate() {
+        return lastCompletedDate;
+    }
+
+    public void setLastCompletedDate(LocalDate lastCompletedDate) {
+        this.lastCompletedDate = lastCompletedDate;
     }
 }

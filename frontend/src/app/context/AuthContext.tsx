@@ -4,6 +4,7 @@ import * as authApi from '@/app/api/auth';
 interface User {
   username: string;
   email: string;
+  totalPoints: number;
 }
 
 interface AuthContextType {
@@ -36,9 +37,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const resp = await authApi.login(username, password);
       localStorage.setItem('token', resp.token);
-      localStorage.setItem('user', JSON.stringify({ username: resp.username, email: resp.email }));
+      localStorage.setItem('user', JSON.stringify({ username: resp.username, email: resp.email, totalPoints: resp.totalPoints }));
       setToken(resp.token);
-      setUser({ username: resp.username, email: resp.email });
+      setUser({ username: resp.username, email: resp.email, totalPoints: resp.totalPoints });
     } finally {
       setIsLoading(false);
     }
@@ -49,9 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const resp = await authApi.signup(username, email, password);
       localStorage.setItem('token', resp.token);
-      localStorage.setItem('user', JSON.stringify({ username: resp.username, email: resp.email }));
+      localStorage.setItem('user', JSON.stringify({ username: resp.username, email: resp.email, totalPoints: resp.totalPoints }));
       setToken(resp.token);
-      setUser({ username: resp.username, email: resp.email });
+      setUser({ username: resp.username, email: resp.email, totalPoints: resp.totalPoints });
     } finally {
       setIsLoading(false);
     }

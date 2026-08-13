@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -23,6 +24,8 @@ public class HabitService {
 
     private final ToDoListItemRepository toDoListItemRepository;
     private final UserRepository userRepository;
+    private final RewardService rewardService;
+    private final StampCardService stampCardService;
 
     public List<HabitResponse> getUserHabits(String username) {
         User user = findUser(username);
@@ -53,6 +56,8 @@ public class HabitService {
         habit.setFrequency(frequency);
         habit.setActive(true);
         habit.setCompleted(false);
+        habit.setCurrentStreak(0);
+        habit.setLongestStreak(0);
 
         toDoListItemRepository.save(habit);
         return toResponse(habit);
@@ -81,9 +86,49 @@ public class HabitService {
     @Transactional
     public HabitResponse toggleComplete(String username, Long id) {
         HabitItem habit = findHabit(id, username);
-        habit.setCompleted(!habit.getCompleted());
+
+        if (Boolean.TRUE.equals(habit.getCompleted())) {
+            habit.setCompleted(false);
+            toDoListItemRepository.save(habit);
+            return toResponse(habit);
+        }
+
+        habit.setCompleted(true);
+        updateStreak(habit);
         toDoListItemRepository.save(habit);
+
+        stampCardService.addStampForHabitCompletion(username, habit.getId());
+
         return toResponse(habit);
+    }
+
+    private void updateStreak(HabitItem habit) {
+        LocalDate today = LocalDate.now();
+        LocalDate lastCompleted = habit.getLastCompletedDate();
+
+        if (lastCompleted == null) {
+            habit.setCurrentStreak(1);
+        } else if ("DAILY".equalsIgnoreCase(habit.getFrequency())) {
+            if (lastCompleted.equals(today.minusDays(1))) {
+                habit.setCurrentStreak(habit.getCurrentStreak() + 1);
+            } else if (!lastCompleted.equals(today)) {
+                habit.setCurrentStreak(1);
+            }
+        } else if ("WEEKLY".equalsIgnoreCase(habit.getFrequency())) {
+            if (!lastCompleted.isBefore(today.minusDays(7)) && !lastCompleted.equals(today)) {
+                habit.setCurrentStreak(habit.getCurrentStreak() + 1);
+            } else if (!lastCompleted.equals(today)) {
+                habit.setCurrentStreak(1);
+            }
+        } else {
+            habit.setCurrentStreak(habit.getCurrentStreak() + 1);
+        }
+
+        if (habit.getCurrentStreak() > habit.getLongestStreak()) {
+            habit.setLongestStreak(habit.getCurrentStreak());
+        }
+
+        habit.setLastCompletedDate(today);
     }
 
     /**
@@ -96,8 +141,6 @@ public class HabitService {
         habit.setActive(false);
         toDoListItemRepository.save(habit);
     }
-
-    // --- helpers ---
 
     private User findUser(String username) {
         return userRepository.findByUsername(username)
@@ -161,6 +204,8 @@ public class HabitService {
                 .description(habit.getDescription())
                 .frequency(habit.getFrequency())
                 .completed(habit.getCompleted())
+                .currentStreak(habit.getCurrentStreak())
+                .longestStreak(habit.getLongestStreak())
                 .build();
     }
 }

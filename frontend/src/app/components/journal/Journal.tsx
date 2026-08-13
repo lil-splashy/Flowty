@@ -9,6 +9,7 @@ type JournalEntry = {
 };
 
 const STORAGE_KEY = "flowty-journal-entries";
+const MOODS = ["Focused", "Productive", "Calm", "Tired", "Stressed"];
 
 function generateId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -22,20 +23,15 @@ function generateId(): string {
 }
 
 function loadEntries(): JournalEntry[] {
-  const savedEntries = localStorage.getItem(STORAGE_KEY);
-
-  if (!savedEntries) {
-    return [];
-  }
-
   try {
-    return JSON.parse(savedEntries) as JournalEntry[];
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? (JSON.parse(saved) as JournalEntry[]) : [];
   } catch {
     return [];
   }
 }
 
-export default function Journal() {
+export default function Journal({ className }: { className?: string }) {
   const [entries, setEntries] = useState<JournalEntry[]>(loadEntries);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -43,26 +39,22 @@ export default function Journal() {
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [adding, setAdding] = useState(false);
 
   const filteredEntries = useMemo(() => {
-    const searchValue = search.trim().toLowerCase();
-
-    if (searchValue === "") {
-      return entries;
-    }
-
-    return entries.filter((entry) => {
-      return (
-        entry.title.toLowerCase().includes(searchValue) ||
-        entry.content.toLowerCase().includes(searchValue) ||
-        entry.mood.toLowerCase().includes(searchValue)
-      );
-    });
+    const q = search.trim().toLowerCase();
+    if (!q) return entries;
+    return entries.filter(
+      (e) =>
+        e.title.toLowerCase().includes(q) ||
+        e.content.toLowerCase().includes(q) ||
+        e.mood.toLowerCase().includes(q)
+    );
   }, [entries, search]);
 
-  function saveEntries(updatedEntries: JournalEntry[]): void {
-    setEntries(updatedEntries);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedEntries));
+  function saveEntries(updated: JournalEntry[]): void {
+    setEntries(updated);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   }
 
   function clearForm(): void {
@@ -70,51 +62,40 @@ export default function Journal() {
     setContent("");
     setMood("Focused");
     setEditingId(null);
+    setAdding(false);
   }
 
   function saveEntry(): void {
-    if (title.trim() === "") {
+    if (!title.trim()) {
       setMessage("Entry title is required.");
       return;
     }
-
-    if (content.trim() === "") {
+    if (!content.trim()) {
       setMessage("Journal content is required.");
       return;
     }
-
     if (editingId) {
-      const updatedEntries = entries.map((entry) =>
-        entry.id === editingId
-          ? {
-              ...entry,
-              title: title.trim(),
-              content: content.trim(),
-              mood,
-            }
-          : entry
+      saveEntries(
+        entries.map((e) =>
+          e.id === editingId
+            ? { ...e, title: title.trim(), content: content.trim(), mood }
+            : e
+        )
       );
-
-      saveEntries(updatedEntries);
       setMessage("Journal entry updated.");
     } else {
-      const newEntry: JournalEntry = {
+const newEntry: JournalEntry = {
         id: generateId(),
         title: title.trim(),
         content: content.trim(),
         mood,
         createdAt: new Date().toISOString(),
       };
-
       saveEntries([newEntry, ...entries]);
       setMessage("Journal entry saved.");
     }
-
     clearForm();
-
-    window.setTimeout(() => {
-      setMessage("");
-    }, 3000);
+    window.setTimeout(() => setMessage(""), 3000);
   }
 
   function editEntry(entry: JournalEntry): void {
@@ -123,164 +104,160 @@ export default function Journal() {
     setContent(entry.content);
     setMood(entry.mood);
     setMessage("");
+    setAdding(true);
   }
 
   function deleteEntry(id: string): void {
-    const updatedEntries = entries.filter((entry) => entry.id !== id);
-    saveEntries(updatedEntries);
-
-    if (editingId === id) {
-      clearForm();
-    }
-
+    saveEntries(entries.filter((e) => e.id !== id));
+    if (editingId === id) clearForm();
     setMessage("Journal entry deleted.");
-
-    window.setTimeout(() => {
-      setMessage("");
-    }, 3000);
+    window.setTimeout(() => setMessage(""), 3000);
   }
 
+  const defaultClasses =
+    "bg-[#e7e1af] border-[#1a1a2e] border-[1.5px] border-solid drop-shadow-[5px_3px_2px_rgba(0,0,0,0.6)] h-[500px] overflow-hidden relative rounded-[2px] shadow-[5px_3px_4px_0px_rgba(0,0,0,0.61)] w-[468px]";
+
   return (
-    <section className="mx-auto max-w-4xl rounded-2xl bg-white p-6 shadow-lg">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-900">
-          Notebook &amp; Journal
-        </h2>
-
-        <p className="text-sm text-slate-500">
-          Record reflections, goals, and daily accomplishments.
-        </p>
-      </div>
-
-      <div className="rounded-xl bg-amber-50 p-4">
-        <p className="text-sm font-medium text-amber-900">
-          Daily prompt: What did you accomplish today?
-        </p>
-      </div>
-
-      <div className="mt-5 grid gap-4">
-        <input
-          type="text"
-          value={title}
-          placeholder="Entry title"
-          className="rounded-lg border border-slate-300 px-3 py-2"
-          onChange={(event) => {
-            setTitle(event.target.value);
-            setMessage("");
-          }}
-        />
-
-        <select
-          value={mood}
-          className="rounded-lg border border-slate-300 px-3 py-2"
-          onChange={(event) => setMood(event.target.value)}
+    <div className={className || defaultClasses} data-name="Journal">
+      <div className="content-stretch flex flex-col items-start overflow-clip p-px relative rounded-[inherit] size-full">
+        <div
+          className="bg-[#4bbec8] border-b-[#1a1a2e] border-b-[1.5px] border-solid content-stretch flex h-[34px] items-center px-[10px] relative shrink-0 w-full"
+          data-name="Title"
         >
-          <option value="Focused">Focused</option>
-          <option value="Productive">Productive</option>
-          <option value="Calm">Calm</option>
-          <option value="Tired">Tired</option>
-          <option value="Stressed">Stressed</option>
-        </select>
-
-        <textarea
-          value={content}
-          placeholder="Write your thoughts here..."
-          className="min-h-40 rounded-lg border border-slate-300 px-3 py-2"
-          onChange={(event) => {
-            setContent(event.target.value);
-            setMessage("");
-          }}
-        />
-
-        <div className="flex flex-wrap items-center gap-3">
+          <p className="font-['Permanent_Marker',sans-serif] leading-[13px] not-italic relative shrink-0 text-[#1a1a2e] text-[12px] whitespace-nowrap">
+            JOURNAL
+          </p>
+          <div className="flex-[1_0_0] h-[20px] min-w-px relative" />
           <button
-            type="button"
-            onClick={saveEntry}
-            className="rounded-lg bg-slate-900 px-5 py-2 font-semibold text-white"
+            onClick={() => (adding ? clearForm() : setAdding(true))}
+            className="font-['Courier_Prime',sans-serif] leading-[10px] not-italic relative shrink-0 text-[#1a1a2e] text-[9px] bg-[#e7e1af] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[6px] py-[2px] hover:bg-[#d5cf9e] transition-colors"
           >
-            {editingId ? "Update Entry" : "Save Entry"}
+            {adding ? "\u2715" : "+ Add Entry"}
           </button>
+        </div>
 
-          {editingId && (
-            <button
-              type="button"
-              onClick={clearForm}
-              className="rounded-lg border border-slate-300 px-5 py-2 font-semibold text-slate-700"
+        {adding && (
+          <div className="w-full px-[8px] py-[6px] border-b-[#1a1a2e] border-b-[1px] border-solid flex flex-col gap-[4px]">
+            <input
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (message) setMessage("");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && content.trim()) saveEntry();
+              }}
+              placeholder="Entry title"
+              maxLength={200}
+              autoFocus
+              className="font-['Courier_Prime',sans-serif] text-[9px] text-[#3a2a10] bg-[rgba(255,255,255,0.5)] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[4px] py-[2px] outline-none"
+            />
+            <select
+              value={mood}
+              onChange={(e) => setMood(e.target.value)}
+              className="font-['Courier_Prime',sans-serif] text-[9px] text-[#3a2a10] bg-[rgba(255,255,255,0.5)] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[4px] py-[2px] outline-none"
             >
-              Cancel Edit
-            </button>
-          )}
+              {MOODS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+            <textarea
+              value={content}
+              onChange={(e) => {
+                setContent(e.target.value);
+                if (message) setMessage("");
+              }}
+              placeholder="Write your thoughts here..."
+              rows={4}
+              className="font-['Courier_Prime',sans-serif] text-[9px] text-[#3a2a10] bg-[rgba(255,255,255,0.5)] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[4px] py-[2px] outline-none resize-none"
+            />
+            <div className="flex gap-[4px] items-center">
+              <button
+                onClick={saveEntry}
+                className="font-['Courier_Prime',sans-serif] text-[9px] text-[#1a1a2e] bg-[#c5f06a] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[8px] py-[2px] hover:opacity-80 transition-opacity"
+              >
+                {editingId ? "Update" : "Save"}
+              </button>
+              {editingId && (
+                <button
+                  onClick={clearForm}
+                  className="font-['Courier_Prime',sans-serif] text-[9px] text-[#1a1a2e] bg-[#e7e1af] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[8px] py-[2px] hover:bg-[#d5cf9e] transition-colors"
+                >
+                  Cancel
+                </button>
+              )}
+              {message && (
+                <p className="font-['Courier_Prime',sans-serif] text-[8px] text-[#4bbec8] leading-[10px]">
+                  {message}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
-          {message && (
-            <p className="text-sm font-medium text-slate-700">
-              {message}
-            </p>
+        <div className="w-full px-[8px] py-[4px] border-b-[#1a1a2e] border-b-[1px] border-solid">
+          <input
+            type="search"
+            value={search}
+            placeholder="Search entries..."
+            className="w-full font-['Courier_Prime',sans-serif] text-[9px] text-[#3a2a10] bg-[rgba(255,255,255,0.5)] border-[#1a1a2e] border-[1px] border-solid rounded-[2px] px-[4px] py-[2px] outline-none"
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="flex-1 overflow-y-auto overflow-x-hidden relative w-full max-h-[420px]">
+          {filteredEntries.length === 0 ? (
+            <div className="flex items-center justify-center h-[100px]">
+              <p className="font-['Courier_Prime',sans-serif] leading-[14px] not-italic text-[#8a6a40] text-[10px]">
+                {search ? "No matching entries" : "No entries yet"}
+              </p>
+            </div>
+          ) : (
+            <div className="content-stretch flex flex-col pb-[4px] pt-[2px]">
+              {filteredEntries.map((entry, idx) => (
+                <div
+                  key={entry.id}
+                  className={`relative shrink-0 w-full group border-b border-[rgba(126,229,231,0.4)] border-solid ${
+                    idx % 2 === 0 ? "bg-transparent" : "bg-[rgba(0,0,0,0.02)]"
+                  }`}
+                  data-name="Entry"
+                >
+                  <div className="content-stretch flex flex-col gap-[2px] px-[10px] py-[6px] relative w-full hover:bg-[rgba(0,0,0,0.03)] transition-colors">
+                    <div className="flex items-center gap-[6px]">
+                      <p className="flex-1 font-['Courier_Prime',sans-serif] leading-[12px] not-italic text-[#3a2a10] text-[9px] font-bold truncate">
+                        {entry.title}
+                      </p>
+                      <span className="shrink-0 font-['Courier_Prime',sans-serif] leading-[10px] not-italic text-[#8a6a40] text-[7px]">
+                        {entry.mood}
+                      </span>
+                      <span className="shrink-0 font-['Courier_Prime',sans-serif] leading-[10px] not-italic text-[#8a6a40] text-[7px]">
+                        {new Date(entry.createdAt).toLocaleDateString()}
+                      </span>
+                      <button
+                        onClick={() => editEntry(entry)}
+                        className="shrink-0 font-['Courier_Prime',sans-serif] text-[#8a6a40] text-[9px] opacity-0 group-hover:opacity-100 transition-opacity hover:text-[#1a1a2e] leading-[10px]"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteEntry(entry.id)}
+                        className="shrink-0 font-['Courier_Prime',sans-serif] text-[#8a6a40] text-[9px] opacity-0 group-hover:opacity-100 transition-opacity hover:text-[#a33] leading-[10px]"
+                      >
+                        {"\u2715"}
+                      </button>
+                    </div>
+                    <p className="font-['Courier_Prime',sans-serif] leading-[14px] not-italic text-[#3a2a10] text-[9px] whitespace-pre-wrap line-clamp-3">
+                      {entry.content}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
-
-      <div className="mt-8">
-        <input
-          type="search"
-          value={search}
-          placeholder="Search journal entries..."
-          className="w-full rounded-lg border border-slate-300 px-3 py-2"
-          onChange={(event) => setSearch(event.target.value)}
-        />
-      </div>
-
-      <div className="mt-5 space-y-4">
-        {filteredEntries.length === 0 ? (
-          <p className="rounded-lg bg-slate-100 p-4 text-center text-slate-500">
-            No journal entries yet.
-          </p>
-        ) : (
-          filteredEntries.map((entry) => (
-            <article
-              key={entry.id}
-              className="rounded-xl border border-slate-200 p-5"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">
-                    {entry.title}
-                  </h3>
-
-                  <p className="text-xs text-slate-500">
-                    {new Date(entry.createdAt).toLocaleString()}
-                  </p>
-
-                  <p className="mt-1 text-sm text-slate-600">
-                    Mood: {entry.mood}
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => editEntry(entry)}
-                    className="rounded-lg border border-slate-300 px-3 py-1 text-sm"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => deleteEntry(entry.id)}
-                    className="rounded-lg border border-red-300 px-3 py-1 text-sm text-red-700"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-
-              <p className="mt-4 whitespace-pre-wrap text-slate-700">
-                {entry.content}
-              </p>
-            </article>
-          ))
-        )}
-      </div>
-    </section>
+    </div>
   );
 }

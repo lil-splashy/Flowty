@@ -55,7 +55,7 @@ const SOUND_OPTIONS: SoundOption[] = [
     id: "white-noise",
     name: "White Noise",
     icon: "🎧",
-    file: "/audio/white-noise.mp3",
+    file: "/audio/white-noice.mp3",
     description: "Consistent background noise for concentration.",
   },
 ];
@@ -215,72 +215,61 @@ export default function WhiteNoisePlayer() {
   }
 
   return (
-    <section className="mx-auto max-w-4xl rounded-2xl bg-slate-900 p-6 text-white shadow-lg">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold">
+    <section className="bg-[#e7e1af] border-[#1a1a2e] border-[1.5px] border-solid rounded-[2px] shadow-[5px_3px_4px_0px_rgba(0,0,0,0.61)] w-[320px] overflow-hidden">
+      <div className="bg-[#4bbec8] border-b-[#1a1a2e] border-b-[1.5px] border-solid flex h-[34px] items-center px-[10px]">
+        <h2 className="font-['Permanent_Marker',sans-serif] leading-[13px] text-[#1a1a2e] text-[12px] whitespace-nowrap">
           White Noise Player
         </h2>
+      </div>
 
-        <p className="mt-1 text-sm text-slate-300">
-          Choose a calming background sound while studying,
-          journaling, or using the Pomodoro timer.
+      <div className="p-[10px]">
+        <p className="font-['Courier_Prime',sans-serif] leading-[12px] text-[#8a6a40] text-[9px]">
+          Choose a calming background sound while studying or journaling.
         </p>
-      </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        {SOUND_OPTIONS.map((sound) => {
-          const isSelected = sound.id === selectedSoundId;
+        <div className="grid gap-[4px] grid-cols-2 mt-[8px]">
+          {SOUND_OPTIONS.map((sound) => {
+            const isSelected = sound.id === selectedSoundId;
 
-          return (
-            <button
-              key={sound.id}
-              type="button"
-              onClick={() => selectSound(sound.id)}
-              className={
-                isSelected
-                  ? "rounded-xl border border-white bg-white p-4 text-left text-slate-900 transition"
-                  : "rounded-xl border border-slate-700 bg-slate-800 p-4 text-left text-white transition hover:bg-slate-700"
-              }
-            >
-              <span className="block text-3xl">
-                {sound.icon}
-              </span>
-
-              <span className="mt-3 block font-semibold">
-                {sound.name}
-              </span>
-
-              <span
-                className={
+            return (
+              <button
+                key={sound.id}
+                type="button"
+                onClick={() => selectSound(sound.id)}
+                className={`border border-solid px-[6px] py-[4px] rounded-[2px] text-left transition-colors ${
                   isSelected
-                    ? "mt-1 block text-xs text-slate-600"
-                    : "mt-1 block text-xs text-slate-400"
-                }
+                    ? "bg-[#c5f06a] border-[#1a1a2e]"
+                    : "bg-[#f5f3d7] border-[#1a1a2e] hover:bg-[#eae6c8]"
+                }`}
               >
-                {sound.description}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+                <span className="block text-[14px] leading-none">
+                  {sound.icon}
+                </span>
 
-      <div className="mt-6 rounded-xl bg-slate-800 p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-sm text-slate-400">
-              Currently selected
+                <span className="block font-['Courier_Prime',sans-serif] font-bold leading-[11px] mt-[2px] text-[#1a1a2e] text-[9px]">
+                  {sound.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="bg-[#f5f3d7] border-[#1a1a2e] border-[1px] border-solid mt-[8px] p-[8px] rounded-[2px]">
+          <div className="flex flex-wrap items-center justify-between gap-[6px]">
+            <p className="font-['Courier_Prime',sans-serif] leading-[12px] text-[#8a6a40] text-[9px]">
+              Selected
             </p>
 
-            <p className="text-lg font-bold">
+            <p className="font-['Courier_Prime',sans-serif] font-bold leading-[12px] text-[#1a1a2e] text-[10px]">
               {selectedSound.icon} {selectedSound.name}
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-[4px] mt-[6px]">
             <button
               type="button"
               onClick={togglePlayback}
-              className="rounded-lg bg-white px-5 py-2 font-semibold text-slate-900 transition hover:bg-slate-200"
+              className="bg-[#4bbec8] border-[#1a1a2e] border-[1px] border-solid font-['Courier_Prime',sans-serif] leading-[10px] px-[8px] py-[3px] rounded-[2px] text-[#1a1a2e] text-[9px] hover:bg-[#3baab5] transition-colors"
             >
               {isPlaying ? "Pause" : "Play"}
             </button>
@@ -288,7 +277,7 @@ export default function WhiteNoisePlayer() {
             <button
               type="button"
               onClick={stopPlayback}
-              className="rounded-lg border border-slate-600 px-5 py-2 font-semibold text-white transition hover:bg-slate-700"
+              className="bg-[#e7e1af] border-[#1a1a2e] border-[1px] border-solid font-['Courier_Prime',sans-serif] leading-[10px] px-[8px] py-[3px] rounded-[2px] text-[#3a2a10] text-[9px] hover:bg-[#d9d3a1] transition-colors"
             >
               Stop
             </button>
@@ -296,61 +285,59 @@ export default function WhiteNoisePlayer() {
             <button
               type="button"
               onClick={resetPlayer}
-              className="rounded-lg border border-slate-600 px-5 py-2 font-semibold text-white transition hover:bg-slate-700"
+              className="bg-[#e7e1af] border-[#1a1a2e] border-[1px] border-solid font-['Courier_Prime',sans-serif] leading-[10px] px-[8px] py-[3px] rounded-[2px] text-[#3a2a10] text-[9px] hover:bg-[#d9d3a1] transition-colors"
             >
               Reset
             </button>
           </div>
-        </div>
 
-        <label className="mt-6 block">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-medium">
-              Volume
-            </span>
+          <label className="block mt-[8px]">
+            <div className="flex items-center justify-between">
+              <span className="font-['Courier_Prime',sans-serif] leading-[11px] text-[#3a2a10] text-[9px]">
+                Volume
+              </span>
 
-            <span className="text-sm text-slate-400">
-              {Math.round(volume * 100)}%
+              <span className="font-['Courier_Prime',sans-serif] leading-[11px] text-[#8a6a40] text-[9px]">
+                {Math.round(volume * 100)}%
+              </span>
+            </div>
+
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={volume}
+              onChange={(event) =>
+                setVolume(Number(event.target.value))
+              }
+              className="w-full h-[4px] mt-[2px] appearance-none bg-[#d9d3a1] rounded-[2px] outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-[12px] [&::-webkit-slider-thumb]:h-[12px] [&::-webkit-slider-thumb]:rounded-[1px] [&::-webkit-slider-thumb]:bg-[#4bbec8] [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-[#1a1a2e] [&::-webkit-slider-thumb]:cursor-pointer"
+            />
+          </label>
+
+          <div className="flex items-center gap-[4px] mt-[6px]">
+            <span
+              className={`block h-[8px] w-[8px] rounded-full shrink-0 ${
+                isPlaying ? "bg-[#c5f06a]" : "bg-[#c4a870]"
+              }`}
+            />
+
+            <span className="font-['Courier_Prime',sans-serif] leading-[11px] text-[#8a6a40] text-[9px]">
+              {isPlaying
+                ? `${selectedSound.name} is playing`
+                : "Player is paused"}
             </span>
           </div>
 
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.05"
-            value={volume}
-            onChange={(event) =>
-              setVolume(Number(event.target.value))
-            }
-            className="w-full"
-          />
-        </label>
-
-        <div className="mt-4 flex items-center gap-2 text-sm text-slate-300">
-          <span
-            className={
-              isPlaying
-                ? "h-2.5 w-2.5 rounded-full bg-green-400"
-                : "h-2.5 w-2.5 rounded-full bg-slate-500"
-            }
-          />
-
-          <span>
-            {isPlaying
-              ? `${selectedSound.name} is playing`
-              : "Player is paused"}
-          </span>
+          {message !== "" && (
+            <p
+              role="status"
+              className="font-['Courier_Prime',sans-serif] leading-[11px] mt-[6px] text-[#8a6a40] text-[9px]"
+            >
+              {message}
+            </p>
+          )}
         </div>
-
-        {message !== "" && (
-          <p
-            role="status"
-            className="mt-4 text-sm font-medium text-amber-300"
-          >
-            {message}
-          </p>
-        )}
       </div>
     </section>
   );

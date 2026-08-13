@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
-                .requestMatchers("/", "/index.html", "/assets/**", "/src/**").permitAll()
+                .requestMatchers("/", "/index.html", "/assets/**", "/src/**", "/audio/**").permitAll()
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
