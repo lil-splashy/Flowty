@@ -1,7 +1,6 @@
 import { useRef, useState, useMemo, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { motion, AnimatePresence } from "motion/react";
 
 export interface D20Ref {
   roll: () => void;
@@ -18,14 +17,48 @@ function createFaceTexture(number: number): THREE.CanvasTexture {
   canvas.height = size;
   const ctx = canvas.getContext("2d")!;
 
-  ctx.fillStyle = "#E7E1AF";
+  const m = 8;
+  const x1 = size / 2;
+  const y1 = size - m;
+  const x2 = size - m;
+  const y2 = m;
+  const x3 = m;
+  const y3 = m;
+
+  ctx.fillStyle = "#1a1a2e";
   ctx.fillRect(0, 0, size, size);
 
-  const m = 8;
   ctx.beginPath();
-  ctx.moveTo(size / 2, size - m);
-  ctx.lineTo(size - m, m);
-  ctx.lineTo(m, m);
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.lineTo(x3, y3);
+  ctx.closePath();
+  ctx.fillStyle = "#1a1a2e";
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#1a1a2e";
+  ctx.stroke();
+
+  const bevel = 10;
+  const cx = (x1 + x2 + x3) / 3;
+  const cy = (y1 + y2 + y3) / 3;
+  const d1 = Math.sqrt((x1 - cx) ** 2 + (y1 - cy) ** 2);
+  const d2 = Math.sqrt((x2 - cx) ** 2 + (y2 - cy) ** 2);
+  const d3 = Math.sqrt((x3 - cx) ** 2 + (y3 - cy) ** 2);
+  const s1 = 1 - bevel * 0.86 / d1;
+  const s2 = 1 - bevel * 0.86 / d2;
+  const s3 = 1 - bevel * 0.86 / d3;
+  const ix1 = cx + (x1 - cx) * s1;
+  const iy1 = cy + (y1 - cy) * s1;
+  const ix2 = cx + (x2 - cx) * s2;
+  const iy2 = cy + (y2 - cy) * s2;
+  const ix3 = cx + (x3 - cx) * s3;
+  const iy3 = cy + (y3 - cy) * s3;
+
+  ctx.beginPath();
+  ctx.moveTo(ix1, iy1);
+  ctx.lineTo(ix2, iy2);
+  ctx.lineTo(ix3, iy3);
   ctx.closePath();
   ctx.fillStyle = "#E1DBAA";
   ctx.fill();
@@ -33,8 +66,6 @@ function createFaceTexture(number: number): THREE.CanvasTexture {
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  const cx = size / 2;
-  const cy = (size - m + m + m) / 3 + 3;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = "bold 52px 'Courier Prime', 'Courier New', monospace";
@@ -102,6 +133,15 @@ function buildDieFaces(): { meshes: THREE.Mesh[]; faces: FaceData[] } {
   return { meshes, faces };
 }
 
+function easeOutBounce(t: number): number {
+  const n1 = 7.5625;
+  const d1 = 2.75;
+  if (t < 1 / d1) return n1 * t * t;
+  if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+  if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+  return n1 * (t -= 2.625 / d1) * t + 0.984375;
+}
+
 interface RollSpec {
   value: number;
   key: number;
@@ -139,46 +179,61 @@ function DiceScene({
     const index = value - 1;
     const faceNormal = faces[index].normal.clone();
 
-    startQ.current.copy(dieRef.current.quaternion);
+    // Start from a chaotic random orientation so the die visibly tumbles.
+    startQ.current
+      .setFromEuler(
+        new THREE.Euler(
+          Math.random() * Math.PI * 2,
+          Math.random() * Math.PI * 2,
+          Math.random() * Math.PI * 2
+        )
+      )
+      .normalize();
 
-    const offsetX = (Math.random() - 0.5) * 0.5;
-    const offsetZ = (Math.random() - 0.5) * 0.4;
-    dieRef.current.position.set(offsetX, 0, offsetZ);
-    startPos.current.set(offsetX, 0, offsetZ);
+    const offsetX = (Math.random() - 0.5) * 1.2;
+    const offsetZ = (Math.random() - 0.5) * 0.8;
+    const startY = 2.6 + Math.random() * 1.2;
+    dieRef.current.position.set(offsetX, startY, offsetZ);
+    startPos.current.set(offsetX, startY, offsetZ);
     targetPos.current.set(0, 0, 0);
 
     const alignUp = new THREE.Quaternion().setFromUnitVectors(faceNormal, new THREE.Vector3(0, 1, 0));
-    const randomSpins = new THREE.Euler(
-      (Math.floor(Math.random() * 3) + 3) * Math.PI * (Math.random() > 0.5 ? 1 : -1),
-      (Math.floor(Math.random() * 3) + 3) * Math.PI * (Math.random() > 0.5 ? 1 : -1),
-      0
+    // Several full spins around Y so the die tumbles before settling.
+    const ySpinCount = Math.floor(Math.random() * 3) + 3;
+    const ySpin = new THREE.Quaternion().setFromAxisAngle(
+      new THREE.Vector3(0, 1, 0),
+      ySpinCount * Math.PI * 2 * (Math.random() > 0.5 ? 1 : -1) + (Math.random() - 0.5) * Math.PI
     );
-    const spinQ = new THREE.Quaternion().setFromEuler(randomSpins);
 
-    targetQ.current.copy(alignUp).multiply(spinQ);
+    targetQ.current.copy(ySpin).multiply(alignUp);
 
     pendingResult.current = value;
     setRolling(true);
     onRollingChange?.(true);
     rollStartTime.current = performance.now();
-    rollDuration.current = 1800 + Math.random() * 600;
+    rollDuration.current = 1500 + Math.random() * 400;
   }, [rollSpec, rolling, faces, onRollingChange]);
 
   useFrame(() => {
     if (!dieRef.current) return;
 
-    if (!rolling) {
-      const idleSpin = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.003);
-      dieRef.current.quaternion.premultiply(idleSpin);
-      return;
-    }
+    if (!rolling) return;
 
     const elapsed = performance.now() - rollStartTime.current;
     const t = Math.min(elapsed / rollDuration.current, 1);
-    const eased = 1 - Math.pow(1 - t, 4);
 
-    dieRef.current.quaternion.copy(startQ.current).slerp(targetQ.current, eased);
-    dieRef.current.position.lerpVectors(startPos.current, targetPos.current, eased);
+    // Tumbling: fast at first, decelerating into the final orientation.
+    const eased = 1 - Math.pow(1 - t, 4);
+    const wobble = 0.1 * Math.sin(t * Math.PI * 5) * (1 - t);
+    const slerpT = Math.max(0, Math.min(1, eased + wobble));
+    dieRef.current.quaternion.copy(startQ.current).slerp(targetQ.current, slerpT);
+
+    // Bouncing ball drop: falls, bounces a few times, then rests.
+    const bounceT = easeOutBounce(t);
+    const y = startPos.current.y + (targetPos.current.y - startPos.current.y) * bounceT;
+    const x = startPos.current.x + (targetPos.current.x - startPos.current.x) * eased;
+    const z = startPos.current.z + (targetPos.current.z - startPos.current.z) * eased;
+    dieRef.current.position.set(x, y, z);
 
     if (t >= 1) {
       dieRef.current.quaternion.copy(targetQ.current);
@@ -215,11 +270,18 @@ const D20 = forwardRef<D20Ref, { className?: string }>(function D20(
   const [isRolling, setIsRolling] = useState(false);
   const [result, setResult] = useState<number | null>(null);
   const keyRef = useRef(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const triggerRoll = useCallback(() => {
     if (isRolling) return;
-    keyRef.current += 1;
+    if (!audioRef.current) {
+      audioRef.current = new Audio("/audio/D20Roll.mp3");
+    }
+    const audio = audioRef.current;
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
     setResult(null);
+    keyRef.current += 1;
     setRollSpec({ value: rollD20(), key: keyRef.current });
   }, [isRolling]);
 
@@ -230,7 +292,7 @@ const D20 = forwardRef<D20Ref, { className?: string }>(function D20(
       onClick={triggerRoll}
       className={
         className ||
-        "drop-shadow-[3px_1px_1.25px_rgba(0,0,0,0.6),-1px_-2px_1.5px_rgba(0,0,0,0.6)] cursor-pointer h-[89px] relative w-[85px]"
+        "drop-shadow-[3px_1px_1.25px_rgba(0,0,0,0.6),-1px_-2px_1.5px_rgba(0,0,0,0.6)] cursor-pointer h-[178px] relative w-[170px]"
       }
       data-name="D20"
       aria-label="Roll a D20"
@@ -246,26 +308,17 @@ const D20 = forwardRef<D20Ref, { className?: string }>(function D20(
         <DiceScene
           rollSpec={rollSpec}
           onRollingChange={setIsRolling}
-          onResult={(value) => setResult(value)}
+          onResult={setResult}
         />
       </Canvas>
-
-      <AnimatePresence>
-        {result !== null && !isRolling && (
-          <motion.div
-            key={result}
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: [1, 1.2, 1], opacity: 1 }}
-            exit={{ scale: 0.5, opacity: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          >
-            <div className="bg-[#e7e1af] border-2 border-black rounded-full h-12 w-12 flex items-center justify-center shadow-lg">
-              <span className="text-2xl font-bold text-black font-['Courier_Prime']">{result}</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {result !== null && !isRolling && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2 bottom-0 px-2 py-0.5 rounded border border-[#1a1a2e] bg-[#e7e1af] text-[#1a1a2e] font-['Courier_Prime'] text-sm font-bold pointer-events-none"
+          aria-live="polite"
+        >
+          {result}
+        </div>
+      )}
     </div>
   );
 });
