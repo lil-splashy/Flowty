@@ -1,5 +1,5 @@
 import { useRef, useState, useMemo, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 export interface D20Ref {
@@ -150,16 +150,20 @@ interface RollSpec {
 function DiceScene({
   rollSpec,
   onRollingChange,
-  onResult,
 }: {
   rollSpec: RollSpec | null;
   onRollingChange?: (rolling: boolean) => void;
-  onResult?: (value: number) => void;
 }) {
   const dieRef = useRef<THREE.Group>(null);
   const { meshes, faces } = useMemo(buildDieFaces, []);
   const [rolling, setRolling] = useState(false);
   const lastRollKey = useRef<number | null>(null);
+
+  // Camera direction: from die origin (0,0,0) toward camera at (0, 1.8, 3.0)
+  const cameraDir = useMemo(
+    () => new THREE.Vector3(0, 1.8, 3.0).normalize(),
+    []
+  );
 
   const targetQ = useRef(new THREE.Quaternion());
   const startQ = useRef(new THREE.Quaternion());
@@ -167,7 +171,6 @@ function DiceScene({
   const targetPos = useRef(new THREE.Vector3());
   const rollStartTime = useRef(0);
   const rollDuration = useRef(0);
-  const pendingResult = useRef<number | null>(null);
 
   useEffect(() => {
     if (!rollSpec || !dieRef.current) return;
@@ -197,22 +200,31 @@ function DiceScene({
     startPos.current.set(offsetX, startY, offsetZ);
     targetPos.current.set(0, 0, 0);
 
-    const alignUp = new THREE.Quaternion().setFromUnitVectors(faceNormal, new THREE.Vector3(0, 1, 0));
-    // Several full spins around Y so the die tumbles before settling.
-    const ySpinCount = Math.floor(Math.random() * 3) + 3;
-    const ySpin = new THREE.Quaternion().setFromAxisAngle(
-      new THREE.Vector3(0, 1, 0),
-      ySpinCount * Math.PI * 2 * (Math.random() > 0.5 ? 1 : -1) + (Math.random() - 0.5) * Math.PI
+    // Align the winning face's normal toward the camera direction so it's readable.
+    const alignToCamera = new THREE.Quaternion().setFromUnitVectors(
+      faceNormal,
+      cameraDir
     );
 
-    targetQ.current.copy(ySpin).multiply(alignUp);
+    // Several full spins around a random axis so the die tumbles before settling.
+    const spinAxis = new THREE.Vector3(
+      (Math.random() - 0.5) * 2,
+      (Math.random() - 0.5) * 2,
+      (Math.random() - 0.5) * 2
+    ).normalize();
+    const spinCount = Math.floor(Math.random() * 3) + 3;
+    const spin = new THREE.Quaternion().setFromAxisAngle(
+      spinAxis,
+      spinCount * Math.PI * 2 * (Math.random() > 0.5 ? 1 : -1) + (Math.random() - 0.5) * Math.PI
+    );
 
-    pendingResult.current = value;
+    targetQ.current.copy(spin).multiply(alignToCamera);
+
     setRolling(true);
     onRollingChange?.(true);
     rollStartTime.current = performance.now();
     rollDuration.current = 1500 + Math.random() * 400;
-  }, [rollSpec, rolling, faces, onRollingChange]);
+  }, [rollSpec, rolling, faces, onRollingChange, cameraDir]);
 
   useFrame(() => {
     if (!dieRef.current) return;
@@ -240,10 +252,6 @@ function DiceScene({
       dieRef.current.position.copy(targetPos.current);
       setRolling(false);
       onRollingChange?.(false);
-      if (pendingResult.current !== null) {
-        onResult?.(pendingResult.current);
-        pendingResult.current = null;
-      }
     }
   });
 
@@ -268,19 +276,23 @@ const D20 = forwardRef<D20Ref, { className?: string }>(function D20(
 ) {
   const [rollSpec, setRollSpec] = useState<RollSpec | null>(null);
   const [isRolling, setIsRolling] = useState(false);
-  const [result, setResult] = useState<number | null>(null);
   const keyRef = useRef(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Preload the roll sound on mount so it's ready when the user clicks.
+  useEffect(() => {
+    const audio = new Audio("/audio/D20Roll.mp3");
+    audio.preload = "auto";
+    audioRef.current = audio;
+  }, []);
+
   const triggerRoll = useCallback(() => {
     if (isRolling) return;
-    if (!audioRef.current) {
-      audioRef.current = new Audio("/audio/D20Roll.mp3");
-    }
     const audio = audioRef.current;
-    audio.currentTime = 0;
-    audio.play().catch(() => {});
-    setResult(null);
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch((err) => console.warn("D20 audio play failed:", err));
+    }
     keyRef.current += 1;
     setRollSpec({ value: rollD20(), key: keyRef.current });
   }, [isRolling]);
@@ -305,20 +317,8 @@ const D20 = forwardRef<D20Ref, { className?: string }>(function D20(
         <ambientLight intensity={1.0} />
         <directionalLight position={[3, 5, 4]} intensity={1.5} castShadow />
         <directionalLight position={[-3, -0.5, 2]} intensity={0.5} />
-        <DiceScene
-          rollSpec={rollSpec}
-          onRollingChange={setIsRolling}
-          onResult={setResult}
-        />
+        <DiceScene rollSpec={rollSpec} onRollingChange={setIsRolling} />
       </Canvas>
-      {result !== null && !isRolling && (
-        <div
-          className="absolute left-1/2 -translate-x-1/2 bottom-0 px-2 py-0.5 rounded border border-[#1a1a2e] bg-[#e7e1af] text-[#1a1a2e] font-['Courier_Prime'] text-sm font-bold pointer-events-none"
-          aria-live="polite"
-        >
-          {result}
-        </div>
-      )}
     </div>
   );
 });
